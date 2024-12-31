@@ -27,6 +27,33 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
+  // Initialize stream when component mounts or camera changes
+  useEffect(() => {
+    const initCamera = async () => {
+      if (cameras.length > 0) {
+        // For mobile, try to find the front camera
+        if (isMobile) {
+          const frontCamera = cameras.find(camera => 
+            camera.label.toLowerCase().includes('front') ||
+            camera.label.toLowerCase().includes('user') ||
+            camera.label.toLowerCase().includes('selfie')
+          );
+          if (frontCamera && frontCamera.deviceId !== selectedCamera) {
+            console.log("Setting front camera:", frontCamera.deviceId);
+            setSelectedCamera(frontCamera.deviceId);
+          } else if (!selectedCamera) {
+            console.log("No front camera found, using first available camera");
+            setSelectedCamera(cameras[0].deviceId);
+          }
+        } else if (!selectedCamera) {
+          setSelectedCamera(cameras[0].deviceId);
+        }
+      }
+    };
+
+    initCamera();
+  }, [cameras, isMobile]);
+
   useEffect(() => {
     if (selectedCamera) {
       console.log("Initializing stream for selected camera:", selectedCamera);
@@ -44,6 +71,10 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
 
   const handleStartRecording = () => {
     console.log("Starting recording with camera:", selectedCamera);
+    if (!selectedCamera) {
+      console.error("No camera selected");
+      return;
+    }
     setIsPlayingBack(false);
     startRecording(selectedCamera);
   };
