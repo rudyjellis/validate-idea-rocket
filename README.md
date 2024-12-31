@@ -1,69 +1,96 @@
-# Welcome to your Lovable project
+# SaaS Idea Validator - 30 Day Challenge
 
-## Project info
+A mobile-first tool to validate SaaS ideas through video pitches, landing pages, and user feedback.
 
-**URL**: https://lovable.dev/projects/79544bc2-dd9e-4307-95ed-4e74f1f49c53
+## Development Roadmap
 
-## How can I edit this code?
+### Phase 1: Setup & Core Infrastructure (Days 1-3)
+- [x] Project initialization with Vite + React + TypeScript
+- [x] Mobile-first UI framework setup with Tailwind CSS
+- [x] Basic routing and navigation structure
+- [x] Authentication system setup
+- [x] Database schema design
 
-There are several ways of editing your application.
+### Phase 2: Video Recording & Transcription (Days 4-7)
+- [ ] Mobile video recording implementation
+- [ ] Video upload and storage
+- [ ] Integration with transcription service
+- [ ] Transcription review and editing interface
 
-**Use Lovable**
+### Phase 3: Landing Page Generator (Days 8-12)
+- [ ] Landing page template design
+- [ ] Dynamic content population from transcription
+- [ ] Mobile preview functionality
+- [ ] Custom domain support
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/79544bc2-dd9e-4307-95ed-4e74f1f49c53) and start prompting.
+### Phase 4: Validation Tools (Days 13-18)
+- [ ] Waitlist form creation
+- [ ] Validation survey builder
+- [ ] Response collection system
+- [ ] Analytics dashboard
 
-Changes made via Lovable will be committed automatically to this repo.
+### Phase 5: Progress Tracking (Days 19-23)
+- [ ] Timeline visualization
+- [ ] Time tracking system
+- [ ] Progress indicators
+- [ ] Milestone tracking
 
-**Use your preferred IDE**
+### Phase 6: Analytics & Insights (Days 24-27)
+- [ ] Signup metrics
+- [ ] Survey response analytics
+- [ ] Engagement tracking
+- [ ] Data visualization
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Phase 7: Testing & Launch (Days 28-30)
+- [ ] Mobile testing across devices
+- [ ] Performance optimization
+- [ ] Security audit
+- [ ] Launch preparation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Technical Stack
 
-Follow these steps:
+- **Frontend**: React + TypeScript
+- **Styling**: Tailwind CSS
+- **State Management**: React Query + Context
+- **Authentication**: Supabase Auth
+- **Database**: Supabase
+- **Video Processing**: WebRTC + Cloudinary
+- **Transcription**: Whisper API
+- **Analytics**: Supabase Analytics
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Key Features
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Mobile-First Video Pitching**
+   - 30-second video recording limit
+   - Simple, intuitive recording interface
+   - Instant transcription
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Landing Page Generation**
+   - AI-assisted content generation
+   - Mobile-optimized templates
+   - Easy customization
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3. **Validation Tools**
+   - Waitlist collection
+   - Feedback surveys
+   - Response analytics
 
-**Edit a file directly in GitHub**
+4. **Progress Tracking**
+   - 30-day timeline
+   - Time tracking
+   - Milestone achievements
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Getting Started
 
-**Use GitHub Codespaces**
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables
+4. Run development server: `npm run dev`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Contributing
 
-## What technologies are used for this project?
+This project is currently in validation phase. Feedback and suggestions are welcome!
 
-This project is built with .
+## License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/79544bc2-dd9e-4307-95ed-4e74f1f49c53) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+MIT
