@@ -1,4 +1,4 @@
-import VideoRecorder from "@/components/VideoRecorder";
+import VideoRecorder from "@/components/video-recorder/VideoRecorder";
 
 const Index = () => {
   return (
