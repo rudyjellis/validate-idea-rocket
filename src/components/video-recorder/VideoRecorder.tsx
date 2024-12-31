@@ -4,7 +4,6 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import CameraSelector from "./CameraSelector";
 import VideoPreview from "./VideoPreview";
 import RecordingControls from "./RecordingControls";
-import { DownloadOptions } from "./components/DownloadOptions";
 import { useVideoRecording } from "./hooks/useVideoRecording";
 import { useCameraDevices } from "./hooks/useCameraDevices";
 
@@ -21,7 +20,6 @@ const VideoRecorder = () => {
   } = useVideoRecording();
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
-  const [downloadFormat, setDownloadFormat] = useState<'webm' | 'mp4'>('webm');
   const { toast } = useToast();
 
   const handleCameraChange = async (deviceId: string) => {
@@ -31,24 +29,24 @@ const VideoRecorder = () => {
     }
   };
 
-  const downloadVideo = () => {
+  const downloadVideo = (format: 'webm' | 'mp4') => {
     if (recordedChunks.length === 0) return;
 
-    const mimeType = downloadFormat === 'webm' ? 'video/webm' : 'video/mp4';
+    const mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
     const blob = new Blob(recordedChunks, { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     document.body.appendChild(a);
     a.style.display = "none";
     a.href = url;
-    a.download = `recorded-video.${downloadFormat}`;
+    a.download = `recorded-video.${format}`;
     a.click();
     URL.revokeObjectURL(url);
     document.body.removeChild(a);
 
     toast({
       title: "Download started",
-      description: `Your video will be downloaded in ${downloadFormat.toUpperCase()} format`,
+      description: `Your video will be downloaded in ${format.toUpperCase()} format`,
     });
   };
 
@@ -76,13 +74,6 @@ const VideoRecorder = () => {
       </div>
 
       <div className="flex flex-col gap-2 items-center">
-        {recordedChunks.length > 0 && (
-          <DownloadOptions
-            downloadFormat={downloadFormat}
-            onFormatChange={setDownloadFormat}
-          />
-        )}
-        
         <RecordingControls
           recordingState={recordingState}
           onStartRecording={handleStartRecording}
