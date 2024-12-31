@@ -27,69 +27,82 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
-  // Initialize stream when component mounts or camera changes
+  // Initialize camera selection when component mounts
   useEffect(() => {
     const initCamera = async () => {
-      if (cameras.length > 0) {
-        // For mobile, try to find the front camera
-        if (isMobile) {
-          const frontCamera = cameras.find(camera => 
-            camera.label.toLowerCase().includes('front') ||
-            camera.label.toLowerCase().includes('user') ||
-            camera.label.toLowerCase().includes('selfie')
-          );
-          if (frontCamera && frontCamera.deviceId !== selectedCamera) {
-            console.log("Setting front camera:", frontCamera.deviceId);
-            setSelectedCamera(frontCamera.deviceId);
-          } else if (!selectedCamera) {
-            console.log("No front camera found, using first available camera");
-            setSelectedCamera(cameras[0].deviceId);
+      if (cameras.length === 0) {
+        console.log("No cameras available");
+        return;
+      }
+
+      // For mobile devices
+      if (isMobile) {
+        const frontCamera = cameras.find(camera => 
+          camera.label.toLowerCase().includes('front') ||
+          camera.label.toLowerCase().includes('user') ||
+          camera.label.toLowerCase().includes('selfie')
+        );
+
+        if (frontCamera) {
+          console.log("Setting front camera:", frontCamera.deviceId);
+          setSelectedCamera(frontCamera.deviceId);
+          try {
+            await initializeStream(frontCamera.deviceId);
+          } catch (error) {
+            console.error("Error initializing front camera:", error);
           }
         } else {
-          // For desktop, use the first available camera if none is selected
-          if (!selectedCamera) {
-            console.log("Desktop: Setting first available camera");
-            setSelectedCamera(cameras[0].deviceId);
+          console.log("No front camera found, using first available camera");
+          setSelectedCamera(cameras[0].deviceId);
+          try {
+            await initializeStream(cameras[0].deviceId);
+          } catch (error) {
+            console.error("Error initializing fallback camera:", error);
           }
+        }
+      } 
+      // For desktop devices
+      else if (!selectedCamera) {
+        console.log("Desktop: Setting first available camera");
+        setSelectedCamera(cameras[0].deviceId);
+        try {
+          await initializeStream(cameras[0].deviceId);
+        } catch (error) {
+          console.error("Error initializing desktop camera:", error);
         }
       }
     };
 
     initCamera();
-  }, [cameras, isMobile, selectedCamera, setSelectedCamera]);
+  }, [cameras, isMobile]); // Only re-run when cameras list or platform changes
 
-  // Initialize stream whenever selected camera changes
-  useEffect(() => {
-    const initStream = async () => {
-      if (selectedCamera) {
-        console.log("Initializing stream for selected camera:", selectedCamera);
-        try {
-          await initializeStream(selectedCamera);
-        } catch (error) {
-          console.error("Error initializing stream:", error);
-        }
-      }
-    };
-
-    initStream();
-  }, [selectedCamera, initializeStream]);
-
-  const handleCameraChange = (deviceId: string) => {
+  const handleCameraChange = async (deviceId: string) => {
     console.log("Camera changed to:", deviceId);
     if (recordingState !== "idle") {
       stopRecording();
     }
+    
     setSelectedCamera(deviceId);
+    try {
+      await initializeStream(deviceId);
+    } catch (error) {
+      console.error("Error changing camera:", error);
+    }
   };
 
-  const handleStartRecording = () => {
+  const handleStartRecording = async () => {
     console.log("Starting recording with camera:", selectedCamera);
     if (!selectedCamera) {
       console.error("No camera selected");
       return;
     }
+    
     setIsPlayingBack(false);
-    startRecording(selectedCamera);
+    try {
+      await startRecording(selectedCamera);
+    } catch (error) {
+      console.error("Error starting recording:", error);
+    }
   };
 
   const handlePlayback = () => {
@@ -104,10 +117,10 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     }
   };
 
-  const handleTapToRecord = () => {
+  const handleTapToRecord = async () => {
     console.log("Tap to record triggered");
     if (recordingState === "idle") {
-      handleStartRecording();
+      await handleStartRecording();
     } else if (recordingState === "recording") {
       stopRecording();
     }
