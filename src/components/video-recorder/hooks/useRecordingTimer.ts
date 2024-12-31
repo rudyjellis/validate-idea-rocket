@@ -4,9 +4,28 @@ import type { RecordingState } from "../types";
 export const useRecordingTimer = (recordingState: RecordingState, maxDuration: number = 30) => {
   const [timeLeft, setTimeLeft] = useState(maxDuration);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     console.log("Timer state changed:", recordingState, "Time left:", timeLeft);
+
+    const updateTimer = () => {
+      if (!startTimeRef.current) return;
+      
+      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const newTimeLeft = Math.max(0, maxDuration - elapsed);
+      
+      console.log("Timer update - Elapsed:", elapsed, "New time left:", newTimeLeft);
+      setTimeLeft(newTimeLeft);
+
+      if (newTimeLeft <= 0) {
+        console.log("Timer reached zero");
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      }
+    };
 
     if (recordingState === "recording") {
       console.log("Starting timer interval");
@@ -15,21 +34,14 @@ export const useRecordingTimer = (recordingState: RecordingState, maxDuration: n
         clearInterval(intervalRef.current);
       }
 
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          const newTime = prevTime - 1;
-          console.log("Timer tick:", newTime);
-          
-          if (newTime <= 0) {
-            console.log("Timer reached zero");
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current);
-            }
-            return 0;
-          }
-          return newTime;
-        });
-      }, 1000);
+      // Set start time if not already set
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
+
+      // Update immediately and then start interval
+      updateTimer();
+      intervalRef.current = setInterval(updateTimer, 1000);
     } else {
       console.log("Clearing timer interval");
       if (intervalRef.current) {
@@ -37,9 +49,10 @@ export const useRecordingTimer = (recordingState: RecordingState, maxDuration: n
         intervalRef.current = null;
       }
 
-      // Reset timer when returning to idle state
+      // Reset timer and start time when returning to idle state
       if (recordingState === "idle") {
         console.log("Resetting timer to max duration:", maxDuration);
+        startTimeRef.current = null;
         setTimeLeft(maxDuration);
       }
     }
@@ -55,6 +68,7 @@ export const useRecordingTimer = (recordingState: RecordingState, maxDuration: n
 
   const resetTimer = () => {
     console.log("Manually resetting timer");
+    startTimeRef.current = null;
     setTimeLeft(maxDuration);
   };
 
