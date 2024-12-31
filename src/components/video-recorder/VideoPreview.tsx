@@ -137,7 +137,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               <PlaybackOverlay currentTime={currentTime} />
             )}
 
-            {isMobile && (
+            {/* Only show fullscreen button when not recording and on mobile */}
+            {isMobile && recordingState === "idle" && (
               <button
                 onClick={toggleFullscreen}
                 className="absolute top-4 right-4 bg-black/75 p-2 rounded-full text-white hover:bg-black/90 transition-colors z-20"
