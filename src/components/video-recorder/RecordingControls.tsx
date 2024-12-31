@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Video, StopCircle, Pause, Play } from "lucide-react";
+import { Video, StopCircle, Pause, Play, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +38,7 @@ const RecordingControls = ({
             className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
             disabled={hasRecording}
             size="lg"
+            title="Start Recording"
           >
             <Video className="h-4 w-4" />
             Start Recording
@@ -48,6 +49,7 @@ const RecordingControls = ({
               variant="secondary"
               size="lg"
               className="gap-2 shadow-sm"
+              title="Play Recording"
             >
               <Play className="h-4 w-4" />
               Play Recording
@@ -62,6 +64,7 @@ const RecordingControls = ({
               variant="secondary"
               className="gap-2 shadow-sm"
               size="lg"
+              title="Pause Recording"
             >
               <Pause className="h-4 w-4" />
               Pause
@@ -72,6 +75,7 @@ const RecordingControls = ({
               variant="secondary"
               className="gap-2 shadow-sm"
               size="lg"
+              title="Resume Recording"
             >
               <Play className="h-4 w-4" />
               Resume
@@ -82,6 +86,7 @@ const RecordingControls = ({
             variant="destructive"
             className="gap-2 shadow-sm"
             size="lg"
+            title="Stop Recording"
           >
             <StopCircle className="h-4 w-4" />
             Stop Recording
@@ -92,7 +97,8 @@ const RecordingControls = ({
       {hasRecording && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="lg" className="shadow-sm">
+            <Button variant="outline" size="lg" className="gap-2 shadow-sm">
+              <Download className="h-4 w-4" />
               Download Recording
             </Button>
           </DropdownMenuTrigger>
