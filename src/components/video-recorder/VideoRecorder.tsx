@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import CameraSelector from "./CameraSelector";
 import VideoPreview from "./VideoPreview";
 import RecordingControls from "./RecordingControls";
@@ -17,18 +17,13 @@ const VideoRecorder = () => {
     pauseRecording,
     resumeRecording,
     initializeStream,
-    downloadVideo,
-    playRecording,
-    resetRecording,
   } = useVideoRecording();
 
-  const [isPlayingBack, setIsPlayingBack] = useState(false);
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
+  const { toast } = useToast();
 
-  // Initialize stream when component mounts and when camera changes
   useEffect(() => {
     if (selectedCamera) {
-      console.log("Initializing stream with camera:", selectedCamera);
       initializeStream(selectedCamera);
     }
   }, [selectedCamera]);
@@ -40,38 +35,28 @@ const VideoRecorder = () => {
     }
   };
 
-  const handleStartRecording = () => {
-    setIsPlayingBack(false);
-    startRecording(selectedCamera);
+  const downloadVideo = (format: 'webm' | 'mp4') => {
+    if (recordedChunks.length === 0) return;
+
+    const mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
+    const blob = new Blob(recordedChunks, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style.display = "none";
+    a.href = url;
+    a.download = `recorded-video.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    toast({
+      title: "Download started",
+      description: `Your video will be downloaded in ${format.toUpperCase()} format`,
+    });
   };
 
-  const handlePlayback = () => {
-    setIsPlayingBack(true);
-    playRecording();
-    if (videoRef.current) {
-      videoRef.current.onended = () => {
-        setIsPlayingBack(false);
-        if (selectedCamera) {
-          initializeStream(selectedCamera);
-        }
-      };
-    }
-  };
-
-  const handleNewRecording = () => {
-    resetRecording();
-    setIsPlayingBack(false);
-    if (selectedCamera) {
-      initializeStream(selectedCamera);
-    }
-  };
-
-  const handleStopRecording = () => {
-    stopRecording();
-    if (selectedCamera) {
-      initializeStream(selectedCamera);
-    }
-  };
+  const handleStartRecording = () => startRecording(selectedCamera);
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
@@ -88,8 +73,6 @@ const VideoRecorder = () => {
             ref={videoRef}
             isRecording={recordingState === "recording"}
             timeLeft={timeLeft}
-            recordingState={recordingState}
-            isPlayingBack={isPlayingBack}
           />
         </div>
       </div>
@@ -98,13 +81,11 @@ const VideoRecorder = () => {
         <RecordingControls
           recordingState={recordingState}
           onStartRecording={handleStartRecording}
-          onStopRecording={handleStopRecording}
+          onStopRecording={stopRecording}
           onPauseRecording={pauseRecording}
           onResumeRecording={resumeRecording}
           onDownload={downloadVideo}
-          onPlayback={handlePlayback}
           hasRecording={recordedChunks.length > 0}
-          onNewRecording={handleNewRecording}
         />
       </div>
     </div>
