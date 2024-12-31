@@ -1,6 +1,6 @@
 # SaaS Idea Validator - 30 Day Challenge
 
-A mobile-first tool to help solopreneurs and first-time entrepreneurs validate their SaaS ideas through video pitches, landing pages, and user feedback.
+A mobile-first tool to help solopreneurs and first-time entrepreneurs validate their SaaS ideas through video pitches, landing pages, and user feedback, with a goal of collecting meaningful feedback from 25+ unconnected potential users.
 
 ## Development Roadmap
 
@@ -28,6 +28,8 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
 - [ ] Validation survey builder
 - [ ] Response collection system
 - [ ] Analytics dashboard
+- [ ] Alpha tester invitation system
+- [ ] Feedback categorization
 
 ### Phase 5: Progress Tracking (Days 19-23)
 - [ ] Timeline visualization
@@ -36,6 +38,7 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
 - [ ] Days worked counter
 - [ ] Progress indicators
 - [ ] Milestone tracking
+- [ ] Validation goal tracking (25+ responses)
 
 ### Phase 6: Analytics & Insights (Days 24-27)
 - [ ] Signup metrics
@@ -43,6 +46,7 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
 - [ ] Engagement tracking
 - [ ] Data visualization
 - [ ] Time spent analysis
+- [ ] Network diversity metrics
 
 ### Phase 7: Testing & Launch (Days 28-30)
 - [ ] Mobile testing across devices
@@ -84,6 +88,8 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
    - Response analytics
    - Engagement tracking
    - Mobile-friendly forms
+   - Alpha tester management (10 max)
+   - Network diversity tracking
 
 4. **Progress Tracking**
    - 30-day timeline
@@ -92,6 +98,7 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
    - Target date monitoring
    - Milestone achievements
    - Mobile progress widgets
+   - Validation goal progress (25+ responses)
 
 ## Mobile-First Design Principles
 
@@ -102,6 +109,15 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
 - Offline support for core functionality
 - Responsive image optimization
 - Native mobile features integration
+
+## Validation Goals
+
+- Collect meaningful feedback from 25+ unconnected potential users
+- Limited alpha testing group (max 10 friends/family)
+- Network diversity tracking
+- Response quality metrics
+- Engagement analytics
+- Time-to-validation tracking
 
 ## Target Audience
 
