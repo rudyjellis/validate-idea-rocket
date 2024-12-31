@@ -60,34 +60,41 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             </div>
           )}
           {isMobile && recordingState === "idle" && !isPlayingBack && (
-            <div 
-              className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/30 active:bg-black/40 transition-colors cursor-pointer"
-              onClick={handleTap}
-            >
-              <div className="w-20 h-20 rounded-full border-4 border-white/80 flex items-center justify-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-white/80" />
+            <>
+              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+                Tap to Record
               </div>
-              <p className="text-lg font-medium mb-2">Tap to Record</p>
-              <p className="text-sm text-gray-200">or use controls below</p>
-            </div>
+              <div 
+                className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 active:bg-black/40 transition-colors cursor-pointer"
+                onClick={handleTap}
+              >
+                <div className="w-20 h-20 rounded-full border-4 border-white/80 flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-white/80" />
+                </div>
+              </div>
+            </>
           )}
           {isMobile && recordingState === "recording" && (
-            <div 
-              className="absolute inset-0 flex items-center justify-center"
-              onClick={onTapToPause}
-            >
-              <div className="absolute inset-0 bg-black/30" />
-              <p className="text-white text-lg font-medium z-10">Tap to Pause</p>
-            </div>
+            <>
+              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+                Tap to Pause
+              </div>
+              <div 
+                className="absolute inset-0 bg-black/30"
+                onClick={onTapToPause}
+              />
+            </>
           )}
           {recordingState === "paused" && (
-            <div 
-              className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50"
-              onClick={onTapToResume}
-            >
-              <p className="text-lg font-medium mb-2">Recording Paused</p>
-              <p className="text-sm text-gray-200">Tap to Resume</p>
-            </div>
+            <>
+              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+                Tap to Resume
+              </div>
+              <div 
+                className="absolute inset-0 bg-black/50"
+                onClick={onTapToResume}
+              />
+            </>
           )}
           {isPlayingBack && (
             <>
