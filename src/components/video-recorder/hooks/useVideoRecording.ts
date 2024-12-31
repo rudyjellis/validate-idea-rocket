@@ -153,6 +153,8 @@ export const useVideoRecording = () => {
   const downloadVideo = (format: 'webm' | 'mp4') => {
     if (recordedChunks.length === 0) return;
 
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = `recording-${timestamp}-${downloadCounter}`;
     const mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
     const blob = new Blob(recordedChunks, { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -160,7 +162,7 @@ export const useVideoRecording = () => {
     document.body.appendChild(a);
     a.style.display = "none";
     a.href = url;
-    a.download = `recorded-video-${downloadCounter}.${format}`;
+    a.download = `${fileName}.${format}`;
     a.click();
     URL.revokeObjectURL(url);
     document.body.removeChild(a);
