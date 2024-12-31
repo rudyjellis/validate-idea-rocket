@@ -21,6 +21,12 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             {timeLeft}s
           </div>
         )}
+        {!isRecording && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
+            <p className="text-lg font-medium mb-2">Ready to Record</p>
+            <p className="text-sm text-gray-200">Click 'Start Recording' to begin</p>
+          </div>
+        )}
       </div>
     );
   }
