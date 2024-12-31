@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import CameraSelector from "./CameraSelector";
 import VideoPreview from "./VideoPreview";
 import RecordingControls from "./RecordingControls";
@@ -73,6 +73,7 @@ const VideoRecorder = () => {
             ref={videoRef}
             isRecording={recordingState === "recording"}
             timeLeft={timeLeft}
+            recordingState={recordingState}
           />
         </div>
       </div>

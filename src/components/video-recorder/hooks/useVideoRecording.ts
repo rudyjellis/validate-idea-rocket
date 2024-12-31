@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import type { RecordingState } from "../types";
 
 export const useVideoRecording = () => {
@@ -12,6 +12,7 @@ export const useVideoRecording = () => {
   const [downloadCounter, setDownloadCounter] = useState(1);
   const { toast } = useToast();
   const MAX_RECORDING_TIME = 30000;
+  const intervalRef = useRef<NodeJS.Timeout>();
 
   const initializeStream = async (selectedCamera: string) => {
     try {
@@ -43,28 +44,36 @@ export const useVideoRecording = () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
     if (recordingState === "recording") {
-      setTimeLeft(30);
-      intervalId = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            clearInterval(intervalId);
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
+      if (!intervalRef.current) {
+        intervalRef.current = setInterval(() => {
+          setTimeLeft((prevTime) => {
+            if (prevTime <= 1) {
+              clearInterval(intervalRef.current);
+              return 0;
+            }
+            return prevTime - 1;
+          });
+        }, 1000);
+      }
+    } else if (recordingState === "paused") {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
+      }
     }
 
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
       }
     };
   }, [recordingState]);
@@ -91,10 +100,16 @@ export const useVideoRecording = () => {
       mediaRecorder.onstop = () => {
         setRecordedChunks(chunks);
         setRecordingState("idle");
+        setTimeLeft(30);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = undefined;
+        }
       };
 
       mediaRecorder.start();
       setRecordingState("recording");
+      setTimeLeft(30);
 
       setTimeout(() => {
         if (mediaRecorder.state === "recording") {
