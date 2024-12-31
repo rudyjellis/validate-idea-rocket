@@ -70,6 +70,15 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               <p className="text-sm text-gray-200">or use controls below</p>
             </div>
           )}
+          {isMobile && recordingState === "recording" && (
+            <div 
+              className="absolute inset-0 flex items-center justify-center"
+              onClick={onTapToPause}
+            >
+              <div className="absolute inset-0 bg-black/30" />
+              <p className="text-white text-lg font-medium z-10">Tap to Pause</p>
+            </div>
+          )}
           {recordingState === "paused" && (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
               <p className="text-lg font-medium mb-2">Recording Paused</p>
