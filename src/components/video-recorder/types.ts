@@ -4,3 +4,5 @@ export type MediaDeviceInfo = {
   kind: string;
   label: string;
 };
+
+export type RecordingState = "idle" | "recording" | "paused";

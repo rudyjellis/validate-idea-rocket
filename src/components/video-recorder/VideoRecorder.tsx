@@ -3,13 +3,13 @@ import { useToast } from "@/components/ui/use-toast";
 import CameraSelector from "./CameraSelector";
 import VideoPreview from "./VideoPreview";
 import RecordingControls from "./RecordingControls";
-import type { MediaDeviceInfo } from "./types";
+import type { MediaDeviceInfo, RecordingState } from "./types";
 
 const VideoRecorder = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
@@ -52,7 +52,7 @@ const VideoRecorder = () => {
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
-    if (isRecording) {
+    if (recordingState === "recording") {
       setTimeLeft(30);
       intervalId = setInterval(() => {
         setTimeLeft((prevTime) => {
@@ -70,7 +70,7 @@ const VideoRecorder = () => {
         clearInterval(intervalId);
       }
     };
-  }, [isRecording]);
+  }, [recordingState]);
 
   const startRecording = async () => {
     try {
@@ -103,11 +103,11 @@ const VideoRecorder = () => {
         if (streamRef.current) {
           streamRef.current.getTracks().forEach((track) => track.stop());
         }
-        setIsRecording(false);
+        setRecordingState("idle");
       };
 
       mediaRecorder.start();
-      setIsRecording(true);
+      setRecordingState("recording");
 
       setTimeout(() => {
         if (mediaRecorder.state === "recording") {
@@ -129,8 +129,22 @@ const VideoRecorder = () => {
   };
 
   const stopRecording = () => {
+    if (mediaRecorderRef.current?.state !== "inactive") {
+      mediaRecorderRef.current?.stop();
+    }
+  };
+
+  const pauseRecording = () => {
     if (mediaRecorderRef.current?.state === "recording") {
-      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.pause();
+      setRecordingState("paused");
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorderRef.current?.state === "paused") {
+      mediaRecorderRef.current.resume();
+      setRecordingState("recording");
     }
   };
 
@@ -151,7 +165,7 @@ const VideoRecorder = () => {
 
   const handleCameraChange = async (deviceId: string) => {
     setSelectedCamera(deviceId);
-    if (isRecording) {
+    if (recordingState !== "idle") {
       stopRecording();
     }
 
@@ -186,15 +200,17 @@ const VideoRecorder = () => {
           cameras={cameras}
           selectedCamera={selectedCamera}
           onCameraChange={handleCameraChange}
-          disabled={isRecording}
+          disabled={recordingState !== "idle"}
         />
-        <VideoPreview ref={videoRef} isRecording={isRecording} timeLeft={timeLeft} />
+        <VideoPreview ref={videoRef} isRecording={recordingState === "recording"} timeLeft={timeLeft} />
       </div>
 
       <RecordingControls
-        isRecording={isRecording}
+        recordingState={recordingState}
         onStartRecording={startRecording}
         onStopRecording={stopRecording}
+        onPauseRecording={pauseRecording}
+        onResumeRecording={resumeRecording}
         onDownload={downloadVideo}
         hasRecording={recordedChunks.length > 0}
       />
