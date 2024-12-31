@@ -126,6 +126,20 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     }
   };
 
+  const handleTapToPause = () => {
+    console.log("Tap to pause triggered");
+    if (recordingState === "recording") {
+      pauseRecording();
+    }
+  };
+
+  const handleTapToStop = () => {
+    console.log("Tap to stop triggered");
+    if (recordingState === "recording" || recordingState === "paused") {
+      stopRecording();
+    }
+  };
+
   return (
     <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
       <div className={`w-full ${isMobile ? 'flex-1 relative' : 'max-w-md mx-auto'}`}>
@@ -146,6 +160,8 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             recordingState={recordingState}
             isPlayingBack={isPlayingBack}
             onTapToRecord={handleTapToRecord}
+            onTapToPause={handleTapToPause}
+            onTapToStop={handleTapToStop}
           />
         </div>
       </div>
