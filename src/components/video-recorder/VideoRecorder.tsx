@@ -162,22 +162,25 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             onTapToRecord={handleTapToRecord}
             onTapToPause={handleTapToPause}
             onTapToStop={handleTapToStop}
+            onTapToResume={resumeRecording}
           />
         </div>
       </div>
 
-      <div className={`${isMobile ? 'fixed bottom-0 left-0 right-0 pb-6 bg-gradient-to-t from-black/80 to-transparent pt-20' : ''}`}>
-        <RecordingControls
-          recordingState={recordingState}
-          onStartRecording={handleStartRecording}
-          onStopRecording={stopRecording}
-          onPauseRecording={pauseRecording}
-          onResumeRecording={resumeRecording}
-          onDownload={downloadVideo}
-          onPlayback={handlePlayback}
-          hasRecording={recordedChunks.length > 0}
-        />
-      </div>
+      {!isMobile && (
+        <div>
+          <RecordingControls
+            recordingState={recordingState}
+            onStartRecording={handleStartRecording}
+            onStopRecording={stopRecording}
+            onPauseRecording={pauseRecording}
+            onResumeRecording={resumeRecording}
+            onDownload={downloadVideo}
+            onPlayback={handlePlayback}
+            hasRecording={recordedChunks.length > 0}
+          />
+        </div>
+      )}
     </div>
   );
 };
