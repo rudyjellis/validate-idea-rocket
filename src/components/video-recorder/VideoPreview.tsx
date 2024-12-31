@@ -1,8 +1,9 @@
-import { forwardRef, useEffect, useState, useRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { formatTime } from "./utils/timeUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Pause, StopCircle } from "lucide-react";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -19,8 +20,6 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
   ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord, onTapToPause, onTapToStop, onTapToResume }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const isMobile = useIsMobile();
-    const lastTapTime = useRef(0);
-    const DOUBLE_TAP_DELAY = 300; // milliseconds
 
     useEffect(() => {
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
@@ -44,24 +43,6 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       if (isMobile && onTapToRecord) {
         onTapToRecord();
       }
-    };
-
-    const handleRecordingTap = () => {
-      const now = Date.now();
-      const timeSinceLastTap = now - lastTapTime.current;
-      
-      if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-        console.log('Double tap detected - stopping recording');
-        if (onTapToStop) {
-          onTapToStop();
-        }
-      } else {
-        console.log('Single tap detected - pausing recording');
-        if (onTapToPause) {
-          onTapToPause();
-        }
-      }
-      lastTapTime.current = now;
     };
 
     const handleTapToResume = () => {
@@ -103,16 +84,18 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
           )}
           {isMobile && recordingState === "recording" && (
             <>
-              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm z-10">
-                Tap to Pause
-              </div>
-              <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm z-10">
-                Double Tap to Stop
-              </div>
-              <div 
-                className="absolute inset-0 bg-black/30 cursor-pointer"
-                onClick={handleRecordingTap}
-              />
+              <button
+                onClick={onTapToPause}
+                className="absolute bottom-4 left-4 bg-black/75 p-3 rounded-full text-white hover:bg-black/90 transition-colors z-20"
+              >
+                <Pause className="w-6 h-6" />
+              </button>
+              <button
+                onClick={onTapToStop}
+                className="absolute bottom-4 right-4 bg-black/75 p-3 rounded-full text-white hover:bg-black/90 transition-colors z-20"
+              >
+                <StopCircle className="w-6 h-6" />
+              </button>
             </>
           )}
           {recordingState === "paused" && (
