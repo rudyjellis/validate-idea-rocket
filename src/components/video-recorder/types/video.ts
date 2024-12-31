@@ -5,3 +5,4 @@ export type VideoState = {
   recordingState: RecordingState;
 };
 export type RecordingState = "idle" | "recording" | "paused";
+export type MediaDeviceInfo = globalThis.MediaDeviceInfo;
