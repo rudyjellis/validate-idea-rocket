@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useState } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, RefreshCw } from "lucide-react";
 import RecordingTimer from "./components/RecordingTimer";
 import RecordingControls from "./components/RecordingControls";
 import PlaybackOverlay from "./components/PlaybackOverlay";
@@ -17,6 +17,7 @@ interface VideoPreviewProps {
   onTapToPause?: () => void;
   onTapToStop?: () => void;
   onTapToResume?: () => void;
+  onPlayback?: () => void;
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
@@ -28,7 +29,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     onTapToRecord, 
     onTapToPause, 
     onTapToStop, 
-    onTapToResume 
+    onTapToResume,
+    onPlayback 
   }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -145,6 +147,17 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                 aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               >
                 <Maximize2 className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Add replay button for mobile */}
+            {isMobile && recordingState === "idle" && !isPlayingBack && onPlayback && (
+              <button
+                onClick={onPlayback}
+                className="absolute bottom-4 right-4 bg-black/75 p-2 rounded-full text-white hover:bg-black/90 transition-colors z-20"
+                aria-label="Replay recording"
+              >
+                <RefreshCw className="w-6 h-6" />
               </button>
             )}
           </AspectRatio>
