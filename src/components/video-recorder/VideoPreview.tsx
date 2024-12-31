@@ -5,10 +5,11 @@ interface VideoPreviewProps {
   isRecording: boolean;
   timeLeft: number;
   recordingState: RecordingState;
+  isPlayingBack?: boolean;
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
-  ({ isRecording, timeLeft, recordingState }, ref) => {
+  ({ isRecording, timeLeft, recordingState, isPlayingBack }, ref) => {
     return (
       <div className="relative w-full bg-black rounded-lg overflow-hidden" style={{ minHeight: "400px" }}>
         <video
@@ -23,7 +24,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             {timeLeft}s
           </div>
         )}
-        {recordingState === "idle" && (
+        {recordingState === "idle" && !isPlayingBack && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
             <p className="text-lg font-medium mb-2">Ready to Record</p>
             <p className="text-sm text-gray-200">Click 'Start Recording' to begin</p>
@@ -33,6 +34,11 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
             <p className="text-lg font-medium mb-2">Recording Paused</p>
             <p className="text-sm text-gray-200">Click 'Resume' to continue</p>
+          </div>
+        )}
+        {isPlayingBack && (
+          <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full">
+            Playing Recording
           </div>
         )}
       </div>
