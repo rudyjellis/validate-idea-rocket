@@ -19,6 +19,7 @@ const VideoRecorder = () => {
     initializeStream,
     downloadVideo,
     playRecording,
+    resetRecording,
   } = useVideoRecording();
 
   const [isPlayingBack, setIsPlayingBack] = useState(false);
@@ -49,6 +50,13 @@ const VideoRecorder = () => {
       videoRef.current.onended = () => {
         setIsPlayingBack(false);
       };
+    }
+  };
+
+  const handleNewRecording = () => {
+    resetRecording();
+    if (selectedCamera) {
+      initializeStream(selectedCamera);
     }
   };
 
@@ -83,6 +91,7 @@ const VideoRecorder = () => {
           onDownload={downloadVideo}
           onPlayback={handlePlayback}
           hasRecording={recordedChunks.length > 0}
+          onNewRecording={handleNewRecording}
         />
       </div>
     </div>

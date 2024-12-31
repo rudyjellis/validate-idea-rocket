@@ -15,6 +15,14 @@ export const useVideoRecording = () => {
   const { toast } = useToast();
   const MAX_RECORDING_TIME = 30000;
 
+  const resetRecording = () => {
+    setRecordedChunks([]);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    resetTimer();
+  };
+
   const initializeVideoStream = async (selectedCamera: string) => {
     const stream = await initializeStream(selectedCamera);
     if (stream && videoRef.current) {
@@ -120,8 +128,9 @@ export const useVideoRecording = () => {
     stopRecording,
     pauseRecording,
     resumeRecording,
-    initializeStream: initializeVideoStream,
+    initializeStream,
     downloadVideo,
     playRecording,
+    resetRecording,
   };
 };
