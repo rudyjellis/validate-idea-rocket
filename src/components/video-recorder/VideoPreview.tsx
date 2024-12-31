@@ -64,7 +64,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     }, [ref]);
 
     return (
-      <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full' : 'w-full'}`}>
+      <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full absolute inset-0' : 'w-full'}`}>
         <AspectRatio ratio={isMobile ? 9/16 : 16/9} className="h-full">
           <video
             ref={ref}
