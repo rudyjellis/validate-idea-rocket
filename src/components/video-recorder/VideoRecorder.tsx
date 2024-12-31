@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import CameraSelector from "./CameraSelector";
 import VideoPreview from "./VideoPreview";
 import RecordingControls from "./RecordingControls";
@@ -69,14 +68,12 @@ const VideoRecorder = () => {
           disabled={recordingState !== "idle"}
         />
         
-        <div className="relative">
-          <AspectRatio ratio={9/16} className="bg-black rounded-lg border border-gray-200 overflow-hidden">
-            <VideoPreview
-              ref={videoRef}
-              isRecording={recordingState === "recording"}
-              timeLeft={timeLeft}
-            />
-          </AspectRatio>
+        <div className="mt-4">
+          <VideoPreview
+            ref={videoRef}
+            isRecording={recordingState === "recording"}
+            timeLeft={timeLeft}
+          />
         </div>
       </div>
 
