@@ -11,8 +11,60 @@ export const useVideoRecording = () => {
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
   const [downloadCounter, setDownloadCounter] = useState(1);
   const { toast } = useToast();
+
+  // Clear timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
+
+  // Handle timer updates
+  useEffect(() => {
+    if (recordingState === "recording") {
+      console.log("Starting timer");
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
+
+      timerRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - (startTimeRef.current || Date.now())) / 1000);
+        const remaining = Math.max(0, 30 - elapsed);
+        console.log("Timer update - Elapsed:", elapsed, "Remaining:", remaining);
+        setTimeLeft(remaining);
+
+        if (remaining <= 0) {
+          console.log("Timer reached zero, stopping recording");
+          stopRecording();
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+          }
+        }
+      }, 1000);
+    } else {
+      console.log("Clearing timer, state:", recordingState);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (recordingState === "idle") {
+        startTimeRef.current = null;
+        setTimeLeft(30);
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [recordingState]);
 
   const initializeStream = async (selectedCamera: string) => {
     try {
@@ -54,24 +106,15 @@ export const useVideoRecording = () => {
       mediaRecorder.onstop = () => {
         setRecordedChunks(chunks);
         setRecordingState("idle");
+        startTimeRef.current = null;
         setTimeLeft(30);
         console.log("Recording stopped, chunks stored:", chunks.length);
       };
 
+      startTimeRef.current = Date.now();
       mediaRecorder.start();
       setRecordingState("recording");
-      setTimeLeft(30);
       console.log("Recording started");
-
-      setTimeout(() => {
-        if (mediaRecorder.state === "recording") {
-          stopRecording();
-          toast({
-            title: "Recording completed",
-            description: "Maximum recording time (30 seconds) reached",
-          });
-        }
-      }, MAX_RECORDING_TIME);
     } catch (error) {
       console.error("Error starting recording:", error);
       toast({
@@ -83,25 +126,32 @@ export const useVideoRecording = () => {
   };
 
   const stopRecording = () => {
+    console.log("Stopping recording");
     if (mediaRecorderRef.current?.state !== "inactive") {
       mediaRecorderRef.current?.stop();
-      console.log("Recording stopped manually");
+    }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   };
 
   const pauseRecording = () => {
+    console.log("Pausing recording");
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.pause();
       setRecordingState("paused");
-      console.log("Recording paused");
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     }
   };
 
   const resumeRecording = () => {
+    console.log("Resuming recording");
     if (mediaRecorderRef.current?.state === "paused") {
       mediaRecorderRef.current.resume();
       setRecordingState("recording");
-      console.log("Recording resumed");
     }
   };
 
@@ -146,12 +196,6 @@ export const useVideoRecording = () => {
       });
     }
   };
-
-  useEffect(() => {
-    return () => {
-      stopMediaStream(streamRef.current);
-    };
-  }, []);
 
   return {
     videoRef,

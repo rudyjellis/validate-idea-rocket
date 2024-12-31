@@ -67,19 +67,19 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             </div>
           )}
           {isMobile && recordingState === "idle" && !isPlayingBack && (
-            <>
-              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
-                Tap to Record
+            <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+              Tap to Record
+            </div>
+          )}
+          {isMobile && recordingState === "idle" && !isPlayingBack && (
+            <div 
+              className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 active:bg-black/40 transition-colors cursor-pointer"
+              onClick={handleTap}
+            >
+              <div className="w-20 h-20 rounded-full border-4 border-white/80 flex items-center justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-white/80" />
               </div>
-              <div 
-                className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 active:bg-black/40 transition-colors cursor-pointer"
-                onClick={handleTap}
-              >
-                <div className="w-20 h-20 rounded-full border-4 border-white/80 flex items-center justify-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-white/80" />
-                </div>
-              </div>
-            </>
+            </div>
           )}
           {isMobile && recordingState === "recording" && (
             <>
@@ -87,7 +87,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                 Tap to Pause
               </div>
               <div 
-                className="absolute inset-0 bg-black/30"
+                className="absolute inset-0 bg-black/30 cursor-pointer"
                 onClick={onTapToPause}
               />
             </>
