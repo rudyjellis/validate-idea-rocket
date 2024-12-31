@@ -55,6 +55,7 @@ const VideoRecorder = () => {
 
   const handleNewRecording = () => {
     resetRecording();
+    setIsPlayingBack(false);
     if (selectedCamera) {
       initializeStream(selectedCamera);
     }
