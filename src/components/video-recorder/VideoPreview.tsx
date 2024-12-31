@@ -86,22 +86,6 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               </div>
             </>
           )}
-          {isMobile && recordingState === "recording" && (
-            <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-4 px-4">
-              <button
-                onClick={onTapToPause}
-                className="flex-1 bg-white/20 backdrop-blur-sm text-white py-3 rounded-lg font-medium active:bg-white/30 transition-colors"
-              >
-                Tap to Pause
-              </button>
-              <button
-                onClick={onTapToStop}
-                className="flex-1 bg-red-500/80 backdrop-blur-sm text-white py-3 rounded-lg font-medium active:bg-red-600/80 transition-colors"
-              >
-                Stop Recording
-              </button>
-            </div>
-          )}
         </AspectRatio>
       </div>
     );
