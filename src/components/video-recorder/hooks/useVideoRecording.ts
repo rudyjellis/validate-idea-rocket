@@ -150,9 +150,31 @@ export const useVideoRecording = () => {
     }
   };
 
+  const playRecording = () => {
+    if (recordedChunks.length === 0) return;
+
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.src = url;
+      videoRef.current.play().catch(error => {
+        console.error("Error playing video:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not play the recording",
+        });
+      });
+    }
+  };
+
   const downloadVideo = (format: 'webm' | 'mp4') => {
     if (recordedChunks.length === 0) return;
 
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = `recording-${timestamp}-${downloadCounter}`;
     const mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
     const blob = new Blob(recordedChunks, { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -160,7 +182,7 @@ export const useVideoRecording = () => {
     document.body.appendChild(a);
     a.style.display = "none";
     a.href = url;
-    a.download = `recorded-video-${downloadCounter}.${format}`;
+    a.download = `${fileName}.${format}`;
     a.click();
     URL.revokeObjectURL(url);
     document.body.removeChild(a);
@@ -184,5 +206,6 @@ export const useVideoRecording = () => {
     resumeRecording,
     initializeStream,
     downloadVideo,
+    playRecording,
   };
 };
