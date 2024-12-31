@@ -9,6 +9,7 @@ const VideoRecorder = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [timeLeft, setTimeLeft] = useState(30);
   const { toast } = useToast();
   const MAX_RECORDING_TIME = 30000; // 30 seconds in milliseconds
 
@@ -20,6 +21,29 @@ const VideoRecorder = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (isRecording) {
+      setTimeLeft(30);
+      intervalId = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(intervalId);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRecording]);
 
   const startRecording = async () => {
     try {
@@ -98,13 +122,20 @@ const VideoRecorder = () => {
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className="w-full max-w-md rounded-lg border border-gray-200 bg-black"
-      />
+      <div className="relative w-full max-w-md">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="w-full rounded-lg border border-gray-200 bg-black"
+        />
+        {isRecording && (
+          <div className="absolute top-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full">
+            {timeLeft}s
+          </div>
+        )}
+      </div>
       
       <div className="flex gap-2">
         {!isRecording ? (
