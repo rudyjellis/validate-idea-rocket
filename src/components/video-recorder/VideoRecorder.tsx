@@ -27,7 +27,6 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
-  // Initialize camera selection when component mounts
   useEffect(() => {
     const initCamera = async () => {
       if (cameras.length === 0) {
@@ -35,7 +34,6 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
         return;
       }
 
-      // For mobile devices
       if (isMobile) {
         const frontCamera = cameras.find(camera => 
           camera.label.toLowerCase().includes('front') ||
@@ -60,9 +58,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             console.error("Error initializing fallback camera:", error);
           }
         }
-      } 
-      // For desktop devices
-      else if (!selectedCamera) {
+      } else if (!selectedCamera) {
         console.log("Desktop: Setting first available camera");
         setSelectedCamera(cameras[0].deviceId);
         try {
@@ -74,7 +70,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     };
 
     initCamera();
-  }, [cameras, isMobile]); // Only re-run when cameras list or platform changes
+  }, [cameras, isMobile]);
 
   const handleCameraChange = async (deviceId: string) => {
     console.log("Camera changed to:", deviceId);

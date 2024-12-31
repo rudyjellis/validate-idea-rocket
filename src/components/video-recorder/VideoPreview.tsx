@@ -16,7 +16,7 @@ interface VideoPreviewProps {
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
-  ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord, onTapToPause, onTapToStop, onTapToResume }, ref) => {
+  ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord, onTapToPause, onTapToResume }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const isMobile = useIsMobile();
 
@@ -62,12 +62,12 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             className="w-full h-full object-cover"
           />
           {(recordingState === "recording" || recordingState === "paused") && (
-            <div className="absolute top-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full">
+            <div className="absolute top-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm">
               {timeLeft}s
             </div>
           )}
           {isMobile && recordingState === "idle" && !isPlayingBack && (
-            <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+            <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm z-10">
               Tap to Record
             </div>
           )}
@@ -83,10 +83,10 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
           )}
           {isMobile && recordingState === "recording" && (
             <>
-              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm z-10">
                 Tap to Pause
               </div>
-              <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+              <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm z-10">
                 Tap and Hold to Stop
               </div>
               <div 
@@ -97,7 +97,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
           )}
           {recordingState === "paused" && (
             <>
-              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm z-10">
                 Tap to Resume
               </div>
               <div 
@@ -108,10 +108,10 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
           )}
           {isPlayingBack && (
             <>
-              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full">
+              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm">
                 Playing Recording
               </div>
-              <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full">
+              <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm">
                 {formatTime(currentTime)}
               </div>
             </>
