@@ -49,6 +49,9 @@ const VideoRecorder = () => {
     if (videoRef.current) {
       videoRef.current.onended = () => {
         setIsPlayingBack(false);
+        if (selectedCamera) {
+          initializeStream(selectedCamera);
+        }
       };
     }
   };
@@ -56,6 +59,13 @@ const VideoRecorder = () => {
   const handleNewRecording = () => {
     resetRecording();
     setIsPlayingBack(false);
+    if (selectedCamera) {
+      initializeStream(selectedCamera);
+    }
+  };
+
+  const handleStopRecording = () => {
+    stopRecording();
     if (selectedCamera) {
       initializeStream(selectedCamera);
     }
@@ -86,7 +96,7 @@ const VideoRecorder = () => {
         <RecordingControls
           recordingState={recordingState}
           onStartRecording={handleStartRecording}
-          onStopRecording={stopRecording}
+          onStopRecording={handleStopRecording}
           onPauseRecording={pauseRecording}
           onResumeRecording={resumeRecording}
           onDownload={downloadVideo}
