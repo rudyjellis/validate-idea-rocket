@@ -73,6 +73,7 @@ const VideoRecorder = () => {
             ref={videoRef}
             isRecording={recordingState === "recording"}
             timeLeft={timeLeft}
+            recordingState={recordingState}
           />
         </div>
       </div>
