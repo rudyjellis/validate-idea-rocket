@@ -159,6 +159,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             onTapToPause={handleTapToPause}
             onTapToStop={handleTapToStop}
             onTapToResume={resumeRecording}
+            onPlayback={recordedChunks.length > 0 ? handlePlayback : undefined}
           />
         </div>
       </div>
