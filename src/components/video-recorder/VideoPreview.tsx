@@ -86,6 +86,9 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
                 Tap to Pause
               </div>
+              <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full z-10">
+                Tap and Hold to Stop
+              </div>
               <div 
                 className="absolute inset-0 bg-black/30 cursor-pointer"
                 onClick={onTapToPause}
