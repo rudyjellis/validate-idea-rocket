@@ -2,11 +2,14 @@ import { forwardRef, useEffect, useState } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Maximize2, RefreshCw } from "lucide-react";
 import RecordingTimer from "./components/RecordingTimer";
 import RecordingControls from "./components/RecordingControls";
 import PlaybackOverlay from "./components/PlaybackOverlay";
 import RecordButton from "./components/RecordButton";
+import FullscreenButton from "./components/FullscreenButton";
+import ReplayButton from "./components/ReplayButton";
+import VideoElement from "./components/VideoElement";
+import TapToRecordIndicator from "./components/TapToRecordIndicator";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -91,25 +94,14 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full absolute inset-0' : 'w-full'}`}>
         <div className="video-container w-full h-full">
           <AspectRatio ratio={isMobile ? 9/16 : 16/9} className="h-full">
-            <video
-              ref={ref}
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 w-full h-full object-cover"
-              webkit-playsinline="true"
-              x-webkit-airplay="allow"
-              preload="metadata"
-            />
+            <VideoElement ref={ref} />
             
             {(recordingState === "recording" || recordingState === "paused") && (
               <RecordingTimer timeLeft={timeLeft} />
             )}
 
             {isMobile && recordingState === "idle" && !isPlayingBack && (
-              <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10">
-                Tap to Record
-              </div>
+              <TapToRecordIndicator />
             )}
 
             {isMobile && recordingState === "idle" && !isPlayingBack && (
@@ -139,26 +131,15 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               <PlaybackOverlay currentTime={currentTime} />
             )}
 
-            {/* Only show fullscreen button when not recording and on mobile */}
             {isMobile && recordingState === "idle" && !isRecording && (
-              <button
-                onClick={toggleFullscreen}
-                className="absolute top-4 right-4 bg-black/75 p-2 rounded-full text-white hover:bg-black/90 transition-colors z-20"
-                aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-              >
-                <Maximize2 className="w-6 h-6" />
-              </button>
+              <FullscreenButton 
+                isFullscreen={isFullscreen} 
+                onClick={toggleFullscreen} 
+              />
             )}
 
-            {/* Add replay button for mobile */}
             {isMobile && recordingState === "idle" && !isPlayingBack && onPlayback && (
-              <button
-                onClick={onPlayback}
-                className="absolute bottom-4 right-4 bg-black/75 p-2 rounded-full text-white hover:bg-black/90 transition-colors z-20"
-                aria-label="Replay recording"
-              >
-                <RefreshCw className="w-6 h-6" />
-              </button>
+              <ReplayButton onClick={onPlayback} />
             )}
           </AspectRatio>
         </div>
