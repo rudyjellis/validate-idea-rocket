@@ -49,7 +49,7 @@ A mobile-first tool to validate SaaS ideas through video pitches, landing pages,
 
 ## Technical Stack
 
-- **Frontend**: React + TypeScript
+- **Frontend Framework**: Vite + React + TypeScript
 - **Styling**: Tailwind CSS
 - **State Management**: React Query + Context
 - **Authentication**: Supabase Auth
