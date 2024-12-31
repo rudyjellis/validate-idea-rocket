@@ -9,10 +9,11 @@ interface VideoPreviewProps {
   timeLeft: number;
   recordingState: RecordingState;
   isPlayingBack?: boolean;
+  onTapToRecord?: () => void;
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
-  ({ isRecording, timeLeft, recordingState, isPlayingBack }, ref) => {
+  ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const isMobile = useIsMobile();
 
@@ -33,6 +34,13 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       };
     }, [ref]);
 
+    const handleTap = () => {
+      console.log('Tap detected on video preview');
+      if (isMobile && onTapToRecord) {
+        onTapToRecord();
+      }
+    };
+
     return (
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full' : 'w-full'}`}>
         <AspectRatio ratio={isMobile ? 9/16 : 16/9} className={isMobile ? 'h-full' : ''}>
@@ -48,10 +56,16 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               {timeLeft}s
             </div>
           )}
-          {recordingState === "idle" && !isPlayingBack && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
-              <p className="text-lg font-medium mb-2">Ready to Record</p>
-              <p className="text-sm text-gray-200">Click 'Start Recording' to begin</p>
+          {isMobile && recordingState === "idle" && !isPlayingBack && (
+            <div 
+              className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/30 active:bg-black/40 transition-colors cursor-pointer"
+              onClick={handleTap}
+            >
+              <div className="w-20 h-20 rounded-full border-4 border-white/80 flex items-center justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-white/80" />
+              </div>
+              <p className="text-lg font-medium mb-2">Tap to Record</p>
+              <p className="text-sm text-gray-200">or use controls below</p>
             </div>
           )}
           {recordingState === "paused" && (

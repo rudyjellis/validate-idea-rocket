@@ -60,15 +60,26 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     }
   };
 
+  const handleTapToRecord = () => {
+    console.log("Tap to record triggered");
+    if (recordingState === "idle") {
+      handleStartRecording();
+    } else if (recordingState === "recording") {
+      stopRecording();
+    }
+  };
+
   return (
     <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
       <div className={`w-full ${isMobile ? 'flex-1 relative' : 'max-w-md mx-auto'}`}>
-        <CameraSelector
-          cameras={cameras}
-          selectedCamera={selectedCamera}
-          onCameraChange={handleCameraChange}
-          disabled={recordingState !== "idle"}
-        />
+        {(!isMobile || recordingState === "idle") && (
+          <CameraSelector
+            cameras={cameras}
+            selectedCamera={selectedCamera}
+            onCameraChange={handleCameraChange}
+            disabled={recordingState !== "idle"}
+          />
+        )}
         
         <div className={`${isMobile ? 'absolute inset-0' : 'mt-4'}`}>
           <VideoPreview
@@ -77,6 +88,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             timeLeft={timeLeft}
             recordingState={recordingState}
             isPlayingBack={isPlayingBack}
+            onTapToRecord={handleTapToRecord}
           />
         </div>
       </div>
