@@ -25,8 +25,10 @@ const VideoRecorder = () => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
+  // Initialize stream when component mounts and when camera changes
   useEffect(() => {
     if (selectedCamera) {
+      console.log("Initializing stream with camera:", selectedCamera);
       initializeStream(selectedCamera);
     }
   }, [selectedCamera]);
