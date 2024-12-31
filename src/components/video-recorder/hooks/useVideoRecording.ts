@@ -16,7 +16,6 @@ export const useVideoRecording = () => {
   const [downloadCounter, setDownloadCounter] = useState(1);
   const { toast } = useToast();
 
-  // Clear timer on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -25,7 +24,6 @@ export const useVideoRecording = () => {
     };
   }, []);
 
-  // Handle timer updates
   useEffect(() => {
     if (recordingState === "recording") {
       console.log("Starting timer");
@@ -69,11 +67,28 @@ export const useVideoRecording = () => {
   const initializeStream = async (selectedCamera: string) => {
     try {
       stopMediaStream(streamRef.current);
-      const stream = await initializeMediaStream(selectedCamera);
+      console.log("Initializing stream with constraints for iOS compatibility");
+      
+      const constraints = {
+        video: {
+          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: true
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Ensure video playback works on iOS
+        videoRef.current.setAttribute('playsinline', '');
+        await videoRef.current.play();
       }
+      
+      console.log("Stream initialized successfully");
     } catch (error) {
       console.error("Error initializing stream:", error);
       toast({
@@ -93,13 +108,25 @@ export const useVideoRecording = () => {
       const stream = streamRef.current;
       if (!stream) throw new Error("No active stream");
 
-      const mediaRecorder = new MediaRecorder(stream);
+      // Set proper MIME type for iOS compatibility
+      const options = { mimeType: 'video/webm;codecs=vp8,opus' };
+      let mediaRecorder: MediaRecorder;
+      
+      try {
+        mediaRecorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        console.log("WebM not supported, trying MP4");
+        mediaRecorder = new MediaRecorder(stream);
+      }
+
       mediaRecorderRef.current = mediaRecorder;
+      console.log("MediaRecorder created with options:", mediaRecorder.mimeType);
 
       const chunks: Blob[] = [];
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunks.push(e.data);
+          console.log("Received chunk of size:", e.data.size);
         }
       };
 
@@ -111,10 +138,10 @@ export const useVideoRecording = () => {
         console.log("Recording stopped, chunks stored:", chunks.length);
       };
 
-      startTimeRef.current = Date.now();
-      mediaRecorder.start();
+      // Request data more frequently on iOS
+      mediaRecorder.start(1000);
       setRecordingState("recording");
-      console.log("Recording started");
+      console.log("Recording started with mime type:", mediaRecorder.mimeType);
     } catch (error) {
       console.error("Error starting recording:", error);
       toast({
