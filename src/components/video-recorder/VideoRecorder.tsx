@@ -5,9 +5,11 @@ import VideoPreview from "./VideoPreview";
 import RecordingControls from "./RecordingControls";
 import { useVideoRecording } from "./hooks/useVideoRecording";
 import { useCameraDevices } from "./hooks/useCameraDevices";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
+  const isMobile = useIsMobile();
   
   const {
     videoRef,
@@ -59,8 +61,8 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
-      <div className="w-full max-w-md">
+    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
+      <div className={`w-full ${isMobile ? 'flex-1 relative' : 'max-w-md mx-auto'}`}>
         <CameraSelector
           cameras={cameras}
           selectedCamera={selectedCamera}
@@ -68,7 +70,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
           disabled={recordingState !== "idle"}
         />
         
-        <div className="mt-4">
+        <div className={`${isMobile ? 'absolute inset-0' : 'mt-4'}`}>
           <VideoPreview
             ref={videoRef}
             isRecording={recordingState === "recording"}
@@ -79,7 +81,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 items-center">
+      <div className={`${isMobile ? 'fixed bottom-0 left-0 right-0 pb-6 bg-gradient-to-t from-black/80 to-transparent pt-20' : ''}`}>
         <RecordingControls
           recordingState={recordingState}
           onStartRecording={handleStartRecording}
