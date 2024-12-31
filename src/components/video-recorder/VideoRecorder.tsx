@@ -45,28 +45,41 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             console.log("No front camera found, using first available camera");
             setSelectedCamera(cameras[0].deviceId);
           }
-        } else if (!selectedCamera) {
-          setSelectedCamera(cameras[0].deviceId);
+        } else {
+          // For desktop, use the first available camera if none is selected
+          if (!selectedCamera) {
+            console.log("Desktop: Setting first available camera");
+            setSelectedCamera(cameras[0].deviceId);
+          }
         }
       }
     };
 
     initCamera();
-  }, [cameras, isMobile]);
+  }, [cameras, isMobile, selectedCamera, setSelectedCamera]);
 
+  // Initialize stream whenever selected camera changes
   useEffect(() => {
-    if (selectedCamera) {
-      console.log("Initializing stream for selected camera:", selectedCamera);
-      initializeStream(selectedCamera);
-    }
+    const initStream = async () => {
+      if (selectedCamera) {
+        console.log("Initializing stream for selected camera:", selectedCamera);
+        try {
+          await initializeStream(selectedCamera);
+        } catch (error) {
+          console.error("Error initializing stream:", error);
+        }
+      }
+    };
+
+    initStream();
   }, [selectedCamera, initializeStream]);
 
   const handleCameraChange = (deviceId: string) => {
     console.log("Camera changed to:", deviceId);
-    setSelectedCamera(deviceId);
     if (recordingState !== "idle") {
       stopRecording();
     }
+    setSelectedCamera(deviceId);
   };
 
   const handleStartRecording = () => {
