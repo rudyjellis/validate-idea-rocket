@@ -12,10 +12,11 @@ interface VideoPreviewProps {
   onTapToRecord?: () => void;
   onTapToPause?: () => void;
   onTapToStop?: () => void;
+  onTapToResume?: () => void;
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
-  ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord, onTapToPause, onTapToStop }, ref) => {
+  ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord, onTapToPause, onTapToStop, onTapToResume }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const isMobile = useIsMobile();
 
@@ -80,9 +81,12 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             </div>
           )}
           {recordingState === "paused" && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50">
+            <div 
+              className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/50"
+              onClick={onTapToResume}
+            >
               <p className="text-lg font-medium mb-2">Recording Paused</p>
-              <p className="text-sm text-gray-200">Click 'Resume' to continue</p>
+              <p className="text-sm text-gray-200">Tap to Resume</p>
             </div>
           )}
           {isPlayingBack && (
