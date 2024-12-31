@@ -1,10 +1,3 @@
-export type MediaDeviceInfo = {
-  deviceId: string;
-  groupId: string;
-  kind: string;
-  label: string;
-};
-
-export type RecordingState = "idle" | "recording" | "paused";
-
-export type VideoFormat = "webm" | "mp4";
+export type { MediaDeviceInfo } from "./types/video";
+export type { RecordingState } from "./types/video";
+export type { VideoFormat } from "./types/video";

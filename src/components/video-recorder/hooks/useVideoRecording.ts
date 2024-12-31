@@ -1,87 +1,31 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import type { RecordingState } from "../types";
+import { VideoFormat, RecordingState } from "../types/video";
+import { createVideoUrl, downloadVideoFile } from "../utils/videoUtils";
+import { useRecordingTimer } from "./useRecordingTimer";
+import { useMediaStream } from "./useMediaStream";
 
 export const useVideoRecording = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [downloadCounter, setDownloadCounter] = useState(1);
+  const { timeLeft, resetTimer } = useRecordingTimer(recordingState);
+  const { initializeStream, cleanup, streamRef } = useMediaStream();
   const { toast } = useToast();
   const MAX_RECORDING_TIME = 30000;
-  const intervalRef = useRef<NodeJS.Timeout>();
 
-  const initializeStream = async (selectedCamera: string) => {
-    try {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: selectedCamera },
-        audio: true,
-      });
-
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (error) {
-      console.error("Error accessing media devices:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not access camera or microphone",
-      });
+  const initializeVideoStream = async (selectedCamera: string) => {
+    const stream = await initializeStream(selectedCamera);
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (recordingState === "recording") {
-      if (!intervalRef.current) {
-        intervalRef.current = setInterval(() => {
-          setTimeLeft((prevTime) => {
-            if (prevTime <= 1) {
-              clearInterval(intervalRef.current);
-              return 0;
-            }
-            return prevTime - 1;
-          });
-        }, 1000);
-      }
-    } else if (recordingState === "paused") {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = undefined;
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = undefined;
-      }
-    };
-  }, [recordingState]);
 
   const startRecording = async (selectedCamera: string) => {
     try {
       if (!streamRef.current) {
-        await initializeStream(selectedCamera);
+        await initializeVideoStream(selectedCamera);
       }
 
       const stream = streamRef.current;
@@ -100,16 +44,11 @@ export const useVideoRecording = () => {
       mediaRecorder.onstop = () => {
         setRecordedChunks(chunks);
         setRecordingState("idle");
-        setTimeLeft(30);
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = undefined;
-        }
+        resetTimer();
       };
 
       mediaRecorder.start();
       setRecordingState("recording");
-      setTimeLeft(30);
 
       setTimeout(() => {
         if (mediaRecorder.state === "recording") {
@@ -153,9 +92,7 @@ export const useVideoRecording = () => {
   const playRecording = () => {
     if (recordedChunks.length === 0) return;
 
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-
+    const url = createVideoUrl(recordedChunks);
     if (videoRef.current) {
       videoRef.current.srcObject = null;
       videoRef.current.src = url;
@@ -170,29 +107,8 @@ export const useVideoRecording = () => {
     }
   };
 
-  const downloadVideo = (format: 'webm' | 'mp4') => {
-    if (recordedChunks.length === 0) return;
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const fileName = `recording-${timestamp}-${downloadCounter}`;
-    const mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
-    const blob = new Blob(recordedChunks, { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style.display = "none";
-    a.href = url;
-    a.download = `${fileName}.${format}`;
-    a.click();
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-
-    setDownloadCounter(prev => prev + 1);
-
-    toast({
-      title: "Download started",
-      description: `Your video will be downloaded in ${format.toUpperCase()} format`,
-    });
+  const downloadVideo = (format: VideoFormat) => {
+    downloadVideoFile(recordedChunks, format);
   };
 
   return {
@@ -204,7 +120,7 @@ export const useVideoRecording = () => {
     stopRecording,
     pauseRecording,
     resumeRecording,
-    initializeStream,
+    initializeStream: initializeVideoStream,
     downloadVideo,
     playRecording,
   };
