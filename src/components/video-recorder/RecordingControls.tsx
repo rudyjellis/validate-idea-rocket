@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Video, StopCircle, Pause, Play } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { RecordingState } from "./types";
 
 interface RecordingControlsProps {
@@ -14,7 +8,7 @@ interface RecordingControlsProps {
   onStopRecording: () => void;
   onPauseRecording: () => void;
   onResumeRecording: () => void;
-  onDownload: (format: 'webm' | 'mp4') => void;
+  onDownload: () => void;
   hasRecording: boolean;
 }
 
@@ -75,21 +69,9 @@ const RecordingControls = ({
       )}
       
       {hasRecording && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="lg" className="shadow-sm">
-              Download Recording
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => onDownload('webm')}>
-              Download as WebM
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDownload('mp4')}>
-              Download as MP4
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button onClick={onDownload} variant="outline" size="lg" className="shadow-sm">
+          Download Recording
+        </Button>
       )}
     </div>
   );
