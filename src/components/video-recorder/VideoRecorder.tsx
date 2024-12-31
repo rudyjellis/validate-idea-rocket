@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Video, StopCircle, Camera } from "lucide-react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import {
   Select,
   SelectContent,
@@ -237,18 +238,20 @@ const VideoRecorder = () => {
         )}
         
         <div className="relative">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full rounded-lg border border-gray-200 bg-black"
-          />
-          {recordingState === "recording" && (
-            <div className="absolute top-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full">
-              {timeLeft}s
-            </div>
-          )}
+          <AspectRatio ratio={9/16} className="bg-black rounded-lg border border-gray-200 overflow-hidden">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+            {recordingState === "recording" && (
+              <div className="absolute top-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full">
+                {timeLeft}s
+              </div>
+            )}
+          </AspectRatio>
         </div>
       </div>
 
