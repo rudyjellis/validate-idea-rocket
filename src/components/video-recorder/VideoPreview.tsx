@@ -13,7 +13,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
   ({ isRecording, timeLeft, recordingState, isPlayingBack }, ref) => {
     return (
       <div className="relative w-full bg-black rounded-lg overflow-hidden">
-        <AspectRatio ratio={19 / 6}>
+        <AspectRatio ratio={19 / 9}>
           <video
             ref={ref}
             autoPlay
