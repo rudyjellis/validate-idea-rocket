@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import CameraSelector from "./CameraSelector";
@@ -17,10 +17,17 @@ const VideoRecorder = () => {
     stopRecording,
     pauseRecording,
     resumeRecording,
+    initializeStream,
   } = useVideoRecording();
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (selectedCamera) {
+      initializeStream(selectedCamera);
+    }
+  }, [selectedCamera]);
 
   const handleCameraChange = async (deviceId: string) => {
     setSelectedCamera(deviceId);

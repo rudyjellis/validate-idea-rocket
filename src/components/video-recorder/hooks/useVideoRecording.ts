@@ -12,6 +12,31 @@ export const useVideoRecording = () => {
   const { toast } = useToast();
   const MAX_RECORDING_TIME = 30000;
 
+  const initializeStream = async (selectedCamera: string) => {
+    try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: selectedCamera },
+        audio: true,
+      });
+
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error("Error accessing media devices:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not access camera or microphone",
+      });
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -45,19 +70,13 @@ export const useVideoRecording = () => {
 
   const startRecording = async (selectedCamera: string) => {
     try {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+      // Make sure we have an active stream
+      if (!streamRef.current) {
+        await initializeStream(selectedCamera);
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: selectedCamera },
-        audio: true,
-      });
-
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      const stream = streamRef.current;
+      if (!stream) throw new Error("No active stream");
 
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -71,9 +90,6 @@ export const useVideoRecording = () => {
 
       mediaRecorder.onstop = () => {
         setRecordedChunks(chunks);
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-        }
         setRecordingState("idle");
       };
 
@@ -90,11 +106,11 @@ export const useVideoRecording = () => {
         }
       }, MAX_RECORDING_TIME);
     } catch (error) {
-      console.error("Error accessing media devices:", error);
+      console.error("Error starting recording:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Could not access camera or microphone",
+        description: "Could not start recording",
       });
     }
   };
@@ -128,5 +144,6 @@ export const useVideoRecording = () => {
     stopRecording,
     pauseRecording,
     resumeRecording,
+    initializeStream,
   };
 };
