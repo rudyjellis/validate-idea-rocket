@@ -35,6 +35,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
       }
 
       if (isMobile) {
+        // Try to find front camera first
         const frontCamera = cameras.find(camera => 
           camera.label.toLowerCase().includes('front') ||
           camera.label.toLowerCase().includes('user') ||
@@ -44,28 +45,22 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
         if (frontCamera) {
           console.log("Setting front camera:", frontCamera.deviceId);
           setSelectedCamera(frontCamera.deviceId);
-          try {
-            await initializeStream(frontCamera.deviceId);
-          } catch (error) {
+          await initializeStream(frontCamera.deviceId).catch(error => {
             console.error("Error initializing front camera:", error);
-          }
+          });
         } else {
           console.log("No front camera found, using first available camera");
           setSelectedCamera(cameras[0].deviceId);
-          try {
-            await initializeStream(cameras[0].deviceId);
-          } catch (error) {
+          await initializeStream(cameras[0].deviceId).catch(error => {
             console.error("Error initializing fallback camera:", error);
-          }
+          });
         }
       } else if (!selectedCamera) {
         console.log("Desktop: Setting first available camera");
         setSelectedCamera(cameras[0].deviceId);
-        try {
-          await initializeStream(cameras[0].deviceId);
-        } catch (error) {
+        await initializeStream(cameras[0].deviceId).catch(error => {
           console.error("Error initializing desktop camera:", error);
-        }
+        });
       }
     };
 
@@ -79,11 +74,9 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     }
     
     setSelectedCamera(deviceId);
-    try {
-      await initializeStream(deviceId);
-    } catch (error) {
+    await initializeStream(deviceId).catch(error => {
       console.error("Error changing camera:", error);
-    }
+    });
   };
 
   const handleStartRecording = async () => {
@@ -105,6 +98,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     console.log("Starting playback");
     setIsPlayingBack(true);
     playRecording();
+    
     if (videoRef.current) {
       videoRef.current.onended = () => {
         console.log("Playback ended");
