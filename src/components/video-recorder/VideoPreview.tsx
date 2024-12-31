@@ -44,6 +44,13 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       }
     };
 
+    const handleTapToResume = () => {
+      console.log('Tap to resume triggered');
+      if (isMobile && onTapToResume) {
+        onTapToResume();
+      }
+    };
+
     return (
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full' : 'w-full'}`}>
         <AspectRatio ratio={isMobile ? 9/16 : 16/9} className={isMobile ? 'h-full' : ''}>
@@ -91,8 +98,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                 Tap to Resume
               </div>
               <div 
-                className="absolute inset-0 bg-black/50"
-                onClick={onTapToResume}
+                className="absolute inset-0 bg-black/50 cursor-pointer"
+                onClick={handleTapToResume}
               />
             </>
           )}
