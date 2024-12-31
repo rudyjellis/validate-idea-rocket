@@ -45,22 +45,15 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       }
     };
 
-    const handleTapToResume = () => {
-      console.log('Tap to resume triggered');
-      if (isMobile && onTapToResume) {
-        onTapToResume();
-      }
-    };
-
     return (
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full' : 'w-full'}`}>
-        <AspectRatio ratio={isMobile ? 9/16 : 16/9} className={`${isMobile ? 'h-full' : ''}`}>
+        <AspectRatio ratio={isMobile ? 9/16 : 16/9} className="h-full">
           <video
             ref={ref}
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
           />
           {(recordingState === "recording" || recordingState === "paused") && (
             <div className="absolute top-6 right-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg">
@@ -82,7 +75,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               </div>
             </div>
           )}
-          {isMobile && recordingState === "recording" && (
+          {recordingState === "recording" && (
             <>
               <button
                 onClick={onTapToPause}
@@ -105,7 +98,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               </div>
               <div 
                 className="absolute inset-0 bg-black/50 cursor-pointer"
-                onClick={handleTapToResume}
+                onClick={onTapToResume}
               />
             </>
           )}

@@ -6,7 +6,7 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen bg-background ${isMobile ? 'p-0' : 'p-4'}`}>
-      <div className={`${isMobile ? 'w-full h-screen flex items-center justify-center' : 'max-w-2xl mx-auto'}`}>
+      <div className={`${isMobile ? 'w-full h-[100dvh] flex items-center justify-center' : 'max-w-2xl mx-auto'}`}>
         <h1 className={`text-2xl font-bold ${isMobile ? 'sr-only' : 'mb-6 text-center'} text-foreground`}>
           Video Recorder
         </h1>
