@@ -35,24 +35,22 @@ const RecordingControls = ({
         <>
           <Button
             onClick={onStartRecording}
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
             disabled={hasRecording}
-            size="lg"
+            size="icon"
             title="Start Recording"
           >
-            <Video className="h-4 w-4" />
-            Start Recording
+            <Video className="h-5 w-5" />
           </Button>
           {hasRecording && (
             <Button
               onClick={onPlayback}
               variant="secondary"
-              size="lg"
-              className="gap-2 shadow-sm"
+              size="icon"
+              className="shadow-sm"
               title="Play Recording"
             >
-              <Play className="h-4 w-4" />
-              Play Recording
+              <Play className="h-5 w-5" />
             </Button>
           )}
         </>
@@ -62,34 +60,31 @@ const RecordingControls = ({
             <Button
               onClick={onPauseRecording}
               variant="secondary"
-              className="gap-2 shadow-sm"
-              size="lg"
+              className="shadow-sm"
+              size="icon"
               title="Pause Recording"
             >
-              <Pause className="h-4 w-4" />
-              Pause
+              <Pause className="h-5 w-5" />
             </Button>
           ) : (
             <Button
               onClick={onResumeRecording}
               variant="secondary"
-              className="gap-2 shadow-sm"
-              size="lg"
+              className="shadow-sm"
+              size="icon"
               title="Resume Recording"
             >
-              <Play className="h-4 w-4" />
-              Resume
+              <Play className="h-5 w-5" />
             </Button>
           )}
           <Button
             onClick={onStopRecording}
             variant="destructive"
-            className="gap-2 shadow-sm"
-            size="lg"
+            className="shadow-sm"
+            size="icon"
             title="Stop Recording"
           >
-            <StopCircle className="h-4 w-4" />
-            Stop Recording
+            <StopCircle className="h-5 w-5" />
           </Button>
         </>
       )}
@@ -97,9 +92,8 @@ const RecordingControls = ({
       {hasRecording && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="lg" className="gap-2 shadow-sm">
-              <Download className="h-4 w-4" />
-              Download Recording
+            <Button variant="outline" size="icon" className="shadow-sm" title="Download Recording">
+              <Download className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
