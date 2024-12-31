@@ -6,3 +6,5 @@ export type MediaDeviceInfo = {
 };
 
 export type RecordingState = "idle" | "recording" | "paused";
+
+export type VideoFormat = "webm" | "mp4";
