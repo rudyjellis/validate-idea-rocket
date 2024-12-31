@@ -1,9 +1,16 @@
 import React, { useRef, useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import CameraSelector from "./CameraSelector";
-import VideoPreview from "./VideoPreview";
+import { Video, StopCircle, Camera } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { RecordingState } from "./types";
 import RecordingControls from "./RecordingControls";
-import type { MediaDeviceInfo, RecordingState } from "./types";
 
 const VideoRecorder = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -205,17 +212,44 @@ const VideoRecorder = () => {
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <div className="w-full max-w-md">
-        <CameraSelector
-          cameras={cameras}
-          selectedCamera={selectedCamera}
-          onCameraChange={handleCameraChange}
-          disabled={recordingState !== "idle"}
-        />
-        <VideoPreview 
-          ref={videoRef} 
-          isRecording={recordingState === "recording"} 
-          timeLeft={timeLeft} 
-        />
+        {cameras.length > 1 && (
+          <div className="mb-4">
+            <Select
+              value={selectedCamera}
+              onValueChange={handleCameraChange}
+              disabled={recordingState !== "idle"}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select camera" />
+              </SelectTrigger>
+              <SelectContent>
+                {cameras.map((camera) => (
+                  <SelectItem key={camera.deviceId} value={camera.deviceId}>
+                    <div className="flex items-center gap-2">
+                      <Camera className="h-4 w-4" />
+                      {camera.label || `Camera ${cameras.indexOf(camera) + 1}`}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        
+        <div className="relative">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full rounded-lg border border-gray-200 bg-black"
+          />
+          {recordingState === "recording" && (
+            <div className="absolute top-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full">
+              {timeLeft}s
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2 items-center">
