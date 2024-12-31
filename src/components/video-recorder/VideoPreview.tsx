@@ -11,13 +11,13 @@ interface VideoPreviewProps {
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
   ({ isRecording, timeLeft, recordingState, isPlayingBack }, ref) => {
     return (
-      <div className="relative w-full bg-black rounded-lg overflow-hidden" style={{ minHeight: "400px" }}>
+      <div className="relative w-full bg-black rounded-lg overflow-hidden aspect-video">
         <video
           ref={ref}
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
         />
         {(recordingState === "recording" || recordingState === "paused") && (
           <div className="absolute top-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full">
