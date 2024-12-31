@@ -16,6 +16,7 @@ const VideoRecorder = () => {
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const { toast } = useToast();
   const MAX_RECORDING_TIME = 30000; // 30 seconds in milliseconds
+  const [downloadFormat, setDownloadFormat] = useState<'webm' | 'mp4'>('webm');
 
   useEffect(() => {
     const getCameras = async () => {
@@ -153,16 +154,22 @@ const VideoRecorder = () => {
   const downloadVideo = () => {
     if (recordedChunks.length === 0) return;
 
-    const blob = new Blob(recordedChunks, { type: "video/webm" });
+    const mimeType = downloadFormat === 'webm' ? 'video/webm' : 'video/mp4';
+    const blob = new Blob(recordedChunks, { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     document.body.appendChild(a);
     a.style.display = "none";
     a.href = url;
-    a.download = "recorded-video.webm";
+    a.download = `recorded-video.${downloadFormat}`;
     a.click();
     URL.revokeObjectURL(url);
     document.body.removeChild(a);
+
+    toast({
+      title: "Download started",
+      description: `Your video will be downloaded in ${downloadFormat.toUpperCase()} format`,
+    });
   };
 
   const handleCameraChange = async (deviceId: string) => {
@@ -211,15 +218,32 @@ const VideoRecorder = () => {
         />
       </div>
 
-      <RecordingControls
-        recordingState={recordingState}
-        onStartRecording={startRecording}
-        onStopRecording={stopRecording}
-        onPauseRecording={pauseRecording}
-        onResumeRecording={resumeRecording}
-        onDownload={downloadVideo}
-        hasRecording={recordedChunks.length > 0}
-      />
+      <div className="flex flex-col gap-2 items-center">
+        {recordedChunks.length > 0 && (
+          <Select
+            value={downloadFormat}
+            onValueChange={(value: 'webm' | 'mp4') => setDownloadFormat(value)}
+          >
+            <SelectTrigger className="w-[180px] mb-2">
+              <SelectValue placeholder="Select format" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="webm">WebM</SelectItem>
+              <SelectItem value="mp4">MP4</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+        
+        <RecordingControls
+          recordingState={recordingState}
+          onStartRecording={startRecording}
+          onStopRecording={stopRecording}
+          onPauseRecording={pauseRecording}
+          onResumeRecording={resumeRecording}
+          onDownload={downloadVideo}
+          hasRecording={recordedChunks.length > 0}
+        />
+      </div>
     </div>
   );
 };
