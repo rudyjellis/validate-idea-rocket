@@ -52,8 +52,8 @@ const VideoRecorder = () => {
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
+    // Only run the timer when the recording state is "recording"
     if (recordingState === "recording") {
-      setTimeLeft(30);
       intervalId = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
@@ -70,7 +70,7 @@ const VideoRecorder = () => {
         clearInterval(intervalId);
       }
     };
-  }, [recordingState]);
+  }, [recordingState]); // Now depends on recordingState instead of isRecording
 
   const startRecording = async () => {
     try {
@@ -138,6 +138,7 @@ const VideoRecorder = () => {
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.pause();
       setRecordingState("paused");
+      // Timer will automatically pause due to the useEffect dependency on recordingState
     }
   };
 
@@ -145,6 +146,7 @@ const VideoRecorder = () => {
     if (mediaRecorderRef.current?.state === "paused") {
       mediaRecorderRef.current.resume();
       setRecordingState("recording");
+      // Timer will automatically resume due to the useEffect dependency on recordingState
     }
   };
 
@@ -202,7 +204,11 @@ const VideoRecorder = () => {
           onCameraChange={handleCameraChange}
           disabled={recordingState !== "idle"}
         />
-        <VideoPreview ref={videoRef} isRecording={recordingState === "recording"} timeLeft={timeLeft} />
+        <VideoPreview 
+          ref={videoRef} 
+          isRecording={recordingState === "recording"} 
+          timeLeft={timeLeft} 
+        />
       </div>
 
       <RecordingControls
