@@ -8,3 +8,8 @@ export type MediaDeviceInfo = {
 export type RecordingState = "idle" | "recording" | "paused";
 
 export type VideoFormat = "webm" | "mp4";
+
+export interface VideoRecorderProps {
+  maxDuration?: number;
+  onRecordingComplete?: (blob: Blob) => void;
+}

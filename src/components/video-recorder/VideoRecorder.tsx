@@ -7,6 +7,8 @@ import { useVideoRecording } from "./hooks/useVideoRecording";
 import { useCameraDevices } from "./hooks/useCameraDevices";
 
 const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
+  const [isPlayingBack, setIsPlayingBack] = useState(false);
+  
   const {
     videoRef,
     recordingState,
@@ -21,7 +23,6 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     playRecording,
   } = useVideoRecording();
 
-  const [isPlayingBack, setIsPlayingBack] = useState(false);
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
   useEffect(() => {
@@ -29,9 +30,9 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
       console.log("Initializing stream for selected camera:", selectedCamera);
       initializeStream(selectedCamera);
     }
-  }, [selectedCamera]);
+  }, [selectedCamera, initializeStream]);
 
-  const handleCameraChange = async (deviceId: string) => {
+  const handleCameraChange = (deviceId: string) => {
     console.log("Camera changed to:", deviceId);
     setSelectedCamera(deviceId);
     if (recordingState !== "idle") {
