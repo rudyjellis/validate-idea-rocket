@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { type MediaDeviceInfo } from "./types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CameraSelectorProps {
   cameras: MediaDeviceInfo[];
@@ -21,6 +22,15 @@ const CameraSelector = ({
   onCameraChange,
   disabled,
 }: CameraSelectorProps) => {
+  const isMobile = useIsMobile();
+
+  const formatCameraLabel = (camera: MediaDeviceInfo) => {
+    if (isMobile && camera.label.toLowerCase().includes("front")) {
+      return "Front Cam";
+    }
+    return camera.label || `Camera ${cameras.indexOf(camera) + 1}`;
+  };
+
   if (cameras.length <= 1) return null;
 
   return (
@@ -38,7 +48,7 @@ const CameraSelector = ({
             <SelectItem key={camera.deviceId} value={camera.deviceId}>
               <div className="flex items-center gap-2">
                 <Camera className="h-4 w-4" />
-                {camera.label || `Camera ${cameras.indexOf(camera) + 1}`}
+                {formatCameraLabel(camera)}
               </div>
             </SelectItem>
           ))}
