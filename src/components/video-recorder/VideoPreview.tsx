@@ -13,7 +13,6 @@ interface VideoPreviewProps {
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
   ({ isRecording, timeLeft, recordingState, isPlayingBack }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
 
     useEffect(() => {
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
@@ -23,17 +22,11 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
         setCurrentTime(videoElement.current.currentTime);
       };
 
-      const handleLoadedMetadata = () => {
-        setDuration(videoElement.current.duration);
-      };
-
       videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
-      videoElement.current.addEventListener('loadedmetadata', handleLoadedMetadata);
 
       return () => {
         if (videoElement.current) {
           videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
-          videoElement.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
         }
       };
     }, [ref]);
@@ -71,7 +64,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                 Playing Recording
               </div>
               <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full">
-                {formatTime(currentTime)} / {formatTime(duration)}
+                {formatTime(currentTime)}
               </div>
             </>
           )}
