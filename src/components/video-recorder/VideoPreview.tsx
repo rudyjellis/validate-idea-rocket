@@ -1,6 +1,7 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { formatTime } from "./utils/timeUtils";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -11,6 +12,32 @@ interface VideoPreviewProps {
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
   ({ isRecording, timeLeft, recordingState, isPlayingBack }, ref) => {
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+
+    useEffect(() => {
+      const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
+      if (!videoElement.current) return;
+
+      const handleTimeUpdate = () => {
+        setCurrentTime(videoElement.current.currentTime);
+      };
+
+      const handleLoadedMetadata = () => {
+        setDuration(videoElement.current.duration);
+      };
+
+      videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
+      videoElement.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+      return () => {
+        if (videoElement.current) {
+          videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
+          videoElement.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        }
+      };
+    }, [ref]);
+
     return (
       <div className="relative w-full bg-black rounded-lg overflow-hidden">
         <AspectRatio ratio={19 / 9}>
@@ -39,9 +66,14 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             </div>
           )}
           {isPlayingBack && (
-            <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full">
-              Playing Recording
-            </div>
+            <>
+              <div className="absolute top-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full">
+                Playing Recording
+              </div>
+              <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </div>
+            </>
           )}
         </AspectRatio>
       </div>
