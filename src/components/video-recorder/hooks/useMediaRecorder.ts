@@ -9,18 +9,28 @@ export const useMediaRecorder = () => {
 
   const startRecording = (stream: MediaStream) => {
     try {
+      // Try H.264/MP4 first for iOS compatibility
       const options = { 
-        mimeType: 'video/webm;codecs=vp8,opus',
+        mimeType: 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"',
         videoBitsPerSecond: 2500000,
       };
 
       let mediaRecorder: MediaRecorder;
       try {
         mediaRecorder = new MediaRecorder(stream, options);
-        console.log("Using WebM recording");
+        console.log("Using MP4/H.264 recording");
       } catch (e) {
-        console.log("WebM not supported, falling back to default format");
-        mediaRecorder = new MediaRecorder(stream);
+        console.log("H.264 not supported, trying WebM");
+        try {
+          mediaRecorder = new MediaRecorder(stream, { 
+            mimeType: 'video/webm;codecs=h264,opus',
+            videoBitsPerSecond: 2500000,
+          });
+          console.log("Using WebM/H.264 recording");
+        } catch (e2) {
+          console.log("Falling back to default format");
+          mediaRecorder = new MediaRecorder(stream);
+        }
       }
 
       mediaRecorderRef.current = mediaRecorder;
@@ -30,7 +40,7 @@ export const useMediaRecorder = () => {
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunks.push(e.data);
-          console.log("Recorded chunk size:", e.data.size);
+          console.log("Recorded chunk size:", e.data.size, "MIME type:", e.data.type);
         }
       };
 
@@ -47,7 +57,7 @@ export const useMediaRecorder = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Could not start recording",
+        description: "Could not start recording. Please make sure you've granted camera permissions.",
       });
       throw error;
     }
@@ -74,13 +84,19 @@ export const useMediaRecorder = () => {
   const downloadRecording = (format: VideoFormat) => {
     if (recordedChunks.length === 0) return;
 
-    const blob = new Blob(recordedChunks, { type: format === 'webm' ? 'video/webm' : 'video/mp4' });
+    const mimeType = format === 'mp4' ? 'video/mp4' : 'video/webm';
+    const blob = new Blob(recordedChunks, { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `recording-${Date.now()}.${format}`;
     a.click();
     URL.revokeObjectURL(url);
+
+    toast({
+      title: "Download started",
+      description: `Your video will be downloaded in ${format.toUpperCase()} format`,
+    });
   };
 
   return {
