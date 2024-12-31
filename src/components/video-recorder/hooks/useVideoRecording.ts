@@ -9,6 +9,7 @@ export const useVideoRecording = () => {
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
+  const [downloadCounter, setDownloadCounter] = useState(1);
   const { toast } = useToast();
   const MAX_RECORDING_TIME = 30000;
 
@@ -70,7 +71,6 @@ export const useVideoRecording = () => {
 
   const startRecording = async (selectedCamera: string) => {
     try {
-      // Make sure we have an active stream
       if (!streamRef.current) {
         await initializeStream(selectedCamera);
       }
@@ -135,6 +135,29 @@ export const useVideoRecording = () => {
     }
   };
 
+  const downloadVideo = (format: 'webm' | 'mp4') => {
+    if (recordedChunks.length === 0) return;
+
+    const mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
+    const blob = new Blob(recordedChunks, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style.display = "none";
+    a.href = url;
+    a.download = `recorded-video-${downloadCounter}.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    setDownloadCounter(prev => prev + 1);
+
+    toast({
+      title: "Download started",
+      description: `Your video will be downloaded in ${format.toUpperCase()} format`,
+    });
+  };
+
   return {
     videoRef,
     recordingState,
@@ -145,5 +168,6 @@ export const useVideoRecording = () => {
     pauseRecording,
     resumeRecording,
     initializeStream,
+    downloadVideo,
   };
 };
