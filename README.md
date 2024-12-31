@@ -1,6 +1,6 @@
 # SaaS Idea Validator - 30 Day Challenge
 
-A mobile-first tool to validate SaaS ideas through video pitches, landing pages, and user feedback.
+A mobile-first tool to help solopreneurs and first-time entrepreneurs validate their SaaS ideas through video pitches, landing pages, and user feedback.
 
 ## Development Roadmap
 
@@ -32,6 +32,8 @@ A mobile-first tool to validate SaaS ideas through video pitches, landing pages,
 ### Phase 5: Progress Tracking (Days 19-23)
 - [ ] Timeline visualization
 - [ ] Time tracking system
+- [ ] Target launch date tracking
+- [ ] Days worked counter
 - [ ] Progress indicators
 - [ ] Milestone tracking
 
@@ -40,6 +42,7 @@ A mobile-first tool to validate SaaS ideas through video pitches, landing pages,
 - [ ] Survey response analytics
 - [ ] Engagement tracking
 - [ ] Data visualization
+- [ ] Time spent analysis
 
 ### Phase 7: Testing & Launch (Days 28-30)
 - [ ] Mobile testing across devices
@@ -64,21 +67,33 @@ A mobile-first tool to validate SaaS ideas through video pitches, landing pages,
    - 30-second video recording limit
    - Simple, intuitive recording interface
    - Instant transcription
+   - Problem-first approach
 
 2. **Landing Page Generation**
    - AI-assisted content generation
    - Mobile-optimized templates
    - Easy customization
+   - Target launch date setting
 
 3. **Validation Tools**
    - Waitlist collection
    - Feedback surveys
    - Response analytics
+   - Engagement tracking
 
 4. **Progress Tracking**
    - 30-day timeline
    - Time tracking
+   - Days worked counter
+   - Target date monitoring
    - Milestone achievements
+
+## Target Audience
+
+- Solopreneurs
+- First-time entrepreneurs
+- Side project creators
+- SaaS enthusiasts
 
 ## Getting Started
 
