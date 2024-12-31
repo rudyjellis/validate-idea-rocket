@@ -23,17 +23,31 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
     useEffect(() => {
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
-      if (!videoElement.current) return;
+      if (!videoElement.current) {
+        console.log("No video element found");
+        return;
+      }
 
+      console.log("Setting up video element");
+      
       const handleTimeUpdate = () => {
         setCurrentTime(videoElement.current.currentTime);
       };
 
+      const handleLoadedMetadata = () => {
+        console.log("Video metadata loaded");
+        videoElement.current.play().catch(error => {
+          console.error("Error playing video:", error);
+        });
+      };
+
       videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
+      videoElement.current.addEventListener('loadedmetadata', handleLoadedMetadata);
 
       return () => {
         if (videoElement.current) {
           videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
+          videoElement.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
         }
       };
     }, [ref]);
@@ -55,6 +69,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             muted
             className="absolute inset-0 w-full h-full object-cover"
             webkit-playsinline="true"
+            x-webkit-airplay="allow"
+            preload="metadata"
           />
           {(recordingState === "recording" || recordingState === "paused") && (
             <div className="absolute top-6 right-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg">
