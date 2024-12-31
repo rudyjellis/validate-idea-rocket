@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import type { VideoRecorderProps } from "./types";
 import CameraSelector from "./CameraSelector";
 import VideoPreview from "./VideoPreview";
 import RecordingControls from "./RecordingControls";
 import { useVideoRecording } from "./hooks/useVideoRecording";
 import { useCameraDevices } from "./hooks/useCameraDevices";
 
-const VideoRecorder = () => {
+const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
   const {
     videoRef,
     recordingState,
@@ -26,11 +26,13 @@ const VideoRecorder = () => {
 
   useEffect(() => {
     if (selectedCamera) {
+      console.log("Initializing stream for selected camera:", selectedCamera);
       initializeStream(selectedCamera);
     }
   }, [selectedCamera]);
 
   const handleCameraChange = async (deviceId: string) => {
+    console.log("Camera changed to:", deviceId);
     setSelectedCamera(deviceId);
     if (recordingState !== "idle") {
       stopRecording();
@@ -38,15 +40,18 @@ const VideoRecorder = () => {
   };
 
   const handleStartRecording = () => {
+    console.log("Starting recording with camera:", selectedCamera);
     setIsPlayingBack(false);
     startRecording(selectedCamera);
   };
 
   const handlePlayback = () => {
+    console.log("Starting playback");
     setIsPlayingBack(true);
     playRecording();
     if (videoRef.current) {
       videoRef.current.onended = () => {
+        console.log("Playback ended");
         setIsPlayingBack(false);
       };
     }
