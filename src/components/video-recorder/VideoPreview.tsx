@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useState } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { formatTime } from "./utils/timeUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -13,6 +14,7 @@ interface VideoPreviewProps {
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
   ({ isRecording, timeLeft, recordingState, isPlayingBack }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
+    const isMobile = useIsMobile();
 
     useEffect(() => {
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
@@ -32,8 +34,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     }, [ref]);
 
     return (
-      <div className="relative w-full bg-black rounded-lg overflow-hidden">
-        <AspectRatio ratio={16 / 9}>
+      <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full' : 'w-full'}`}>
+        <AspectRatio ratio={isMobile ? 9/16 : 16/9} className={isMobile ? 'h-full' : ''}>
           <video
             ref={ref}
             autoPlay
