@@ -15,6 +15,7 @@ interface RecordingControlsProps {
   onPauseRecording: () => void;
   onResumeRecording: () => void;
   onDownload: (format: 'webm' | 'mp4') => void;
+  onPlayback: () => void;
   hasRecording: boolean;
 }
 
@@ -25,20 +26,34 @@ const RecordingControls = ({
   onPauseRecording,
   onResumeRecording,
   onDownload,
+  onPlayback,
   hasRecording,
 }: RecordingControlsProps) => {
   return (
     <div className="flex gap-2 mt-4 justify-center w-full bg-transparent">
       {recordingState === "idle" ? (
-        <Button
-          onClick={onStartRecording}
-          className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-          disabled={hasRecording}
-          size="lg"
-        >
-          <Video className="h-4 w-4" />
-          Start Recording
-        </Button>
+        <>
+          <Button
+            onClick={onStartRecording}
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+            disabled={hasRecording}
+            size="lg"
+          >
+            <Video className="h-4 w-4" />
+            Start Recording
+          </Button>
+          {hasRecording && (
+            <Button
+              onClick={onPlayback}
+              variant="secondary"
+              size="lg"
+              className="gap-2 shadow-sm"
+            >
+              <Play className="h-4 w-4" />
+              Play Recording
+            </Button>
+          )}
+        </>
       ) : (
         <>
           {recordingState === "recording" ? (

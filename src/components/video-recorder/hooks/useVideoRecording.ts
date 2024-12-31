@@ -150,6 +150,26 @@ export const useVideoRecording = () => {
     }
   };
 
+  const playRecording = () => {
+    if (recordedChunks.length === 0) return;
+
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.src = url;
+      videoRef.current.play().catch(error => {
+        console.error("Error playing video:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not play the recording",
+        });
+      });
+    }
+  };
+
   const downloadVideo = (format: 'webm' | 'mp4') => {
     if (recordedChunks.length === 0) return;
 
@@ -186,5 +206,6 @@ export const useVideoRecording = () => {
     resumeRecording,
     initializeStream,
     downloadVideo,
+    playRecording,
   };
 };

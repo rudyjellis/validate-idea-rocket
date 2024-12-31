@@ -17,6 +17,8 @@ const VideoRecorder = () => {
     pauseRecording,
     resumeRecording,
     initializeStream,
+    downloadVideo,
+    playRecording,
   } = useVideoRecording();
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
@@ -33,27 +35,6 @@ const VideoRecorder = () => {
     if (recordingState !== "idle") {
       stopRecording();
     }
-  };
-
-  const downloadVideo = (format: 'webm' | 'mp4') => {
-    if (recordedChunks.length === 0) return;
-
-    const mimeType = format === 'webm' ? 'video/webm' : 'video/mp4';
-    const blob = new Blob(recordedChunks, { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style.display = "none";
-    a.href = url;
-    a.download = `recorded-video.${format}`;
-    a.click();
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-
-    toast({
-      title: "Download started",
-      description: `Your video will be downloaded in ${format.toUpperCase()} format`,
-    });
   };
 
   const handleStartRecording = () => startRecording(selectedCamera);
@@ -86,6 +67,7 @@ const VideoRecorder = () => {
           onPauseRecording={pauseRecording}
           onResumeRecording={resumeRecording}
           onDownload={downloadVideo}
+          onPlayback={playRecording}
           hasRecording={recordedChunks.length > 0}
         />
       </div>
