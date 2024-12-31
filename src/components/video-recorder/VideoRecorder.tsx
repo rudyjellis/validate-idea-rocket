@@ -21,8 +21,8 @@ const VideoRecorder = () => {
     playRecording,
   } = useVideoRecording();
 
+  const [isPlayingBack, setIsPlayingBack] = useState(false);
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (selectedCamera) {
@@ -37,7 +37,20 @@ const VideoRecorder = () => {
     }
   };
 
-  const handleStartRecording = () => startRecording(selectedCamera);
+  const handleStartRecording = () => {
+    setIsPlayingBack(false);
+    startRecording(selectedCamera);
+  };
+
+  const handlePlayback = () => {
+    setIsPlayingBack(true);
+    playRecording();
+    if (videoRef.current) {
+      videoRef.current.onended = () => {
+        setIsPlayingBack(false);
+      };
+    }
+  };
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
@@ -55,6 +68,7 @@ const VideoRecorder = () => {
             isRecording={recordingState === "recording"}
             timeLeft={timeLeft}
             recordingState={recordingState}
+            isPlayingBack={isPlayingBack}
           />
         </div>
       </div>
@@ -67,7 +81,7 @@ const VideoRecorder = () => {
           onPauseRecording={pauseRecording}
           onResumeRecording={resumeRecording}
           onDownload={downloadVideo}
-          onPlayback={playRecording}
+          onPlayback={handlePlayback}
           hasRecording={recordedChunks.length > 0}
         />
       </div>
