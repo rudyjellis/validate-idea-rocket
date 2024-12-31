@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useState, useRef } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { formatTime } from "./utils/timeUtils";
@@ -16,9 +16,11 @@ interface VideoPreviewProps {
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
-  ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord, onTapToPause, onTapToResume }, ref) => {
+  ({ isRecording, timeLeft, recordingState, isPlayingBack, onTapToRecord, onTapToPause, onTapToStop, onTapToResume }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const isMobile = useIsMobile();
+    const lastTapTime = useRef(0);
+    const DOUBLE_TAP_DELAY = 300; // milliseconds
 
     useEffect(() => {
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
@@ -42,6 +44,24 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       if (isMobile && onTapToRecord) {
         onTapToRecord();
       }
+    };
+
+    const handleRecordingTap = () => {
+      const now = Date.now();
+      const timeSinceLastTap = now - lastTapTime.current;
+      
+      if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+        console.log('Double tap detected - stopping recording');
+        if (onTapToStop) {
+          onTapToStop();
+        }
+      } else {
+        console.log('Single tap detected - pausing recording');
+        if (onTapToPause) {
+          onTapToPause();
+        }
+      }
+      lastTapTime.current = now;
     };
 
     const handleTapToResume = () => {
@@ -87,11 +107,11 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                 Tap to Pause
               </div>
               <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm z-10">
-                Tap and Hold to Stop
+                Double Tap to Stop
               </div>
               <div 
                 className="absolute inset-0 bg-black/30 cursor-pointer"
-                onClick={onTapToPause}
+                onClick={handleRecordingTap}
               />
             </>
           )}
