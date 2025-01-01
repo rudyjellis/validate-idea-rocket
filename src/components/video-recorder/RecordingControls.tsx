@@ -22,8 +22,10 @@ interface RecordingControlsProps {
   onResumeRecording: () => void;
   onDownload: (format: 'webm' | 'mp4') => void;
   onPlayback: () => void;
-  onRestart?: () => void; // Made optional with '?'
+  onStopPlayback?: () => void;
+  onRestart?: () => void;
   hasRecording: boolean;
+  isPlayingBack?: boolean;
 }
 
 const RecordingControls = ({
@@ -34,7 +36,9 @@ const RecordingControls = ({
   onResumeRecording,
   onDownload,
   onPlayback,
+  onStopPlayback,
   hasRecording,
+  isPlayingBack,
 }: RecordingControlsProps) => {
   const renderControlButton = (
     onClick: () => void,
@@ -73,11 +77,19 @@ const RecordingControls = ({
               "default",
               false
             )}
-            {hasRecording && (
+            {hasRecording && !isPlayingBack && (
               renderControlButton(
                 onPlayback,
                 <Play className="h-5 w-5" />,
                 "Play Recording",
+                "secondary"
+              )
+            )}
+            {hasRecording && isPlayingBack && onStopPlayback && (
+              renderControlButton(
+                onStopPlayback,
+                <StopCircle className="h-5 w-5" />,
+                "Stop Playback",
                 "secondary"
               )
             )}
@@ -106,7 +118,7 @@ const RecordingControls = ({
           </>
         )}
         
-        {hasRecording && (
+        {hasRecording && !isPlayingBack && (
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -178,7 +178,9 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             onResumeRecording={resumeRecording}
             onDownload={downloadVideo}
             onPlayback={handlePlayback}
+            onStopPlayback={handleStopPlayback}
             hasRecording={recordedChunks.length > 0}
+            isPlayingBack={isPlayingBack}
           />
         </div>
       )}
