@@ -1,11 +1,8 @@
-import { useRef, useState, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import type { RecordingState, VideoFormat } from '../types';
 import { useMediaStream } from './useMediaStream';
-import { useMediaRecorder } from './useMediaRecorder';
 import { useRecordingTimer } from './useRecordingTimer';
-import { useVideoPlayback } from './useVideoPlayback';
-import { useVideoDownload } from './useVideoDownload';
 
 export const useVideoRecording = (maxDuration: number = 30) => {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
@@ -14,8 +11,6 @@ export const useVideoRecording = (maxDuration: number = 30) => {
   
   const { streamRef, videoRef, initializeStream } = useMediaStream();
   const { timeLeft, startTimer, stopTimer, pauseTimer, resetTimer } = useRecordingTimer(maxDuration);
-  const { downloadVideo } = useVideoDownload();
-  const { playRecording } = useVideoPlayback();
 
   const startRecording = useCallback(async (selectedCamera: string) => {
     console.log("Starting recording with camera:", selectedCamera);
@@ -67,6 +62,34 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     resetTimer();
     setRecordingState('idle');
   }, [resetTimer]);
+
+  const downloadVideo = useCallback((chunks: Blob[], format: VideoFormat) => {
+    if (chunks.length === 0) {
+      console.log("No recorded chunks available for download");
+      toast({
+        variant: "destructive",
+        title: "Download Error",
+        description: "No recording available to download",
+      });
+      return;
+    }
+
+    console.log(`Downloading video in ${format} format`);
+    const blob = new Blob(chunks, { type: `video/${format}` });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `recording.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    toast({
+      title: "Download Started",
+      description: `Your video is being downloaded in ${format.toUpperCase()} format`,
+    });
+  }, [toast]);
 
   return {
     videoRef,

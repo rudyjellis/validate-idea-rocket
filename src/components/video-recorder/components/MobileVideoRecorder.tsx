@@ -21,9 +21,8 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     resumeRecording,
     initializeStream,
     resetRecording,
+    downloadVideo,
   } = useVideoRecording();
-
-  const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
   useEffect(() => {
     const requestPermissions = async () => {
@@ -68,6 +67,11 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     } else if (recordingState === "recording") {
       stopRecording();
     }
+  };
+
+  const handleDownload = (format: 'webm' | 'mp4') => {
+    console.log("Initiating download on mobile with format:", format);
+    downloadVideo(recordedChunks, format);
   };
 
   const handlePlayback = () => {
@@ -117,6 +121,7 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
           onTapToResume={resumeRecording}
           onPlayback={recordedChunks.length > 0 ? handlePlayback : undefined}
           onStopPlayback={handleStopPlayback}
+          onDownload={handleDownload}
         />
       </div>
     </div>

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import type { VideoRecorderProps } from "../types";
 import CameraSelector from "../CameraSelector";
 import VideoPreview from "../VideoPreview";
-import RecordingControls from "../RecordingControls";
 import { useVideoRecording } from "../hooks/useVideoRecording";
 import { useCameraDevices } from "../hooks/useCameraDevices";
 
@@ -87,6 +86,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
   };
 
   const handleDownload = (format: "webm" | "mp4") => {
+    console.log("Initiating download on desktop with format:", format);
     downloadVideo(recordedChunks, format);
   };
 
@@ -108,6 +108,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
           isPlayingBack={isPlayingBack}
           onPlayback={recordedChunks.length > 0 ? handlePlayback : undefined}
           onStopPlayback={handleStopPlayback}
+          onDownload={handleDownload}
         />
       </div>
 
