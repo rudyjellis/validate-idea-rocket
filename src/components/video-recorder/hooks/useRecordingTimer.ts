@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'react';
-import type { RecordingState } from '../types';
 
 export const useRecordingTimer = (maxDuration: number = 30) => {
   const [timeLeft, setTimeLeft] = useState(maxDuration);
@@ -15,6 +14,7 @@ export const useRecordingTimer = (maxDuration: number = 30) => {
   }, []);
 
   const startTimer = () => {
+    console.log("Starting timer with maxDuration:", maxDuration);
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - (startTimeRef.current || Date.now())) / 1000);
@@ -30,19 +30,26 @@ export const useRecordingTimer = (maxDuration: number = 30) => {
   };
 
   const stopTimer = () => {
+    console.log("Stopping timer");
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
     startTimeRef.current = null;
-    setTimeLeft(maxDuration);
   };
 
   const pauseTimer = () => {
+    console.log("Pausing timer");
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+  };
+
+  const resetTimer = () => {
+    console.log("Resetting timer");
+    stopTimer();
+    setTimeLeft(maxDuration);
   };
 
   return {
@@ -50,5 +57,6 @@ export const useRecordingTimer = (maxDuration: number = 30) => {
     startTimer,
     stopTimer,
     pauseTimer,
+    resetTimer
   };
 };
