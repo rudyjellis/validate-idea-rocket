@@ -64,7 +64,7 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
   const handleTapToRecord = async () => {
     console.log("Tap to record triggered on mobile");
     if (recordingState === "idle" && selectedCamera) {
-      await startRecording();
+      await startRecording(selectedCamera);
     } else if (recordingState === "recording") {
       stopRecording();
     }

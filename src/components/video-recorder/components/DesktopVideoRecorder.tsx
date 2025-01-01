@@ -62,7 +62,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     }
     
     setIsPlayingBack(false);
-    await startRecording();
+    await startRecording(selectedCamera);
   };
 
   const handlePlayback = () => {
