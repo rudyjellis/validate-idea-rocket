@@ -21,7 +21,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     initializeStream,
     downloadVideo,
     resetRecording,
-  } = useVideoRecording(maxDuration);
+  } = useVideoRecording();
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
@@ -45,7 +45,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
   const handleCameraChange = async (deviceId: string) => {
     console.log("Camera changed to:", deviceId);
     if (recordingState !== "idle") {
-      stopRecording(maxDuration);
+      stopRecording();
     }
     
     setSelectedCamera(deviceId);
@@ -60,7 +60,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     }
     
     setIsPlayingBack(false);
-    await startRecording(selectedCamera, maxDuration);
+    await startRecording(selectedCamera);
   };
 
   const handlePlayback = () => {
@@ -113,7 +113,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
         <RecordingControls
           recordingState={recordingState}
           onStartRecording={handleStartRecording}
-          onStopRecording={() => stopRecording(maxDuration)}
+          onStopRecording={stopRecording}
           onPauseRecording={pauseRecording}
           onResumeRecording={resumeRecording}
           onDownload={handleDownload}
