@@ -62,9 +62,3 @@ const CameraSelector = ({
 };
 
 export default CameraSelector;
-```
-
-Refactoring focuses on:
-- Simplifying the `formatCameraLabel` function.
-- Removing unnecessary comments to improve readability.
-- Keeping consistent formatting and simplifying the `filteredCameras` logic.
