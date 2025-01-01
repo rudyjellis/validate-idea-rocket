@@ -42,8 +42,10 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
 
         // Initialize with the first available camera
         if (cameras.length > 0) {
-          setSelectedCamera(cameras[0].deviceId);
-          await initializeStream(cameras[0].deviceId);
+          console.log("Mobile: Setting first available camera");
+          const firstCamera = cameras[0].deviceId;
+          setSelectedCamera(firstCamera);
+          await initializeStream(firstCamera);
         }
       } catch (error) {
         console.error("Error requesting camera permissions:", error);
@@ -62,7 +64,7 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
   const handleTapToRecord = async () => {
     console.log("Tap to record triggered on mobile");
     if (recordingState === "idle" && selectedCamera) {
-      await startRecording(selectedCamera);
+      await startRecording();
     } else if (recordingState === "recording") {
       stopRecording();
     }

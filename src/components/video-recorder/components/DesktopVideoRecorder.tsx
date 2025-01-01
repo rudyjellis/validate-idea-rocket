@@ -27,20 +27,22 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
 
   useEffect(() => {
     const initCamera = async () => {
-      if (cameras.length === 0) {
-        console.log("No cameras available");
-        return;
-      }
-
-      if (!selectedCamera) {
-        console.log("Desktop: Setting first available camera");
-        setSelectedCamera(cameras[0].deviceId);
-        await initializeStream(cameras[0].deviceId);
+      try {
+        if (cameras.length > 0) {
+          console.log("Desktop: Setting first available camera");
+          const firstCamera = cameras[0].deviceId;
+          setSelectedCamera(firstCamera);
+          await initializeStream(firstCamera);
+        } else {
+          console.log("No cameras available");
+        }
+      } catch (error) {
+        console.error("Error initializing camera:", error);
       }
     };
 
     initCamera();
-  }, [cameras, selectedCamera, setSelectedCamera, initializeStream]);
+  }, [cameras]);
 
   const handleCameraChange = async (deviceId: string) => {
     console.log("Camera changed to:", deviceId);
@@ -60,7 +62,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     }
     
     setIsPlayingBack(false);
-    await startRecording(selectedCamera);
+    await startRecording();
   };
 
   const handlePlayback = () => {
