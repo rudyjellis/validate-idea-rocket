@@ -1,141 +1,93 @@
-import { useState, useRef, useCallback } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import type { RecordingState } from "../types";
+import { useRef, useState, useCallback } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import type { RecordingState } from '../types';
+import { useMediaStream } from './useMediaStream';
+import { useMediaRecorder } from './useMediaRecorder';
+import { useRecordingTimer } from './useRecordingTimer';
+import { useVideoPlayback } from './useVideoPlayback';
+import { useVideoDownload } from './useVideoDownload';
 
 export const useVideoRecording = () => {
-  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
+  const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  
+  const { streamRef, videoRef, initializeStream } = useMediaStream();
+  const { downloadVideo } = useVideoDownload();
+  const { timeLeft, startTimer, stopTimer, resetTimer } = useRecordingTimer();
+  const { playRecording } = useVideoPlayback();
+  
+  const mediaRecorder = useRef<MediaRecorder | null>(null);
 
   const startRecording = useCallback(async (selectedCamera: string) => {
+    console.log("Starting recording with camera:", selectedCamera);
     try {
-      console.log("Initializing recording with camera:", selectedCamera);
+      const stream = await initializeStream(selectedCamera);
       
-      // Stop any existing stream
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+      if (!stream) {
+        console.error("No stream available");
+        return;
       }
 
-      const constraints = {
-        video: {
-          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: true
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log("Stream obtained successfully");
-
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(console.error);
-      }
-
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=h264,opus'
-      });
-
+      mediaRecorder.current = new MediaRecorder(stream);
       const chunks: Blob[] = [];
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
 
-      mediaRecorder.onstop = () => {
-        setRecordedChunks(chunks);
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
+      mediaRecorder.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
         }
       };
 
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start(1000);
-      setRecordingState("recording");
+      mediaRecorder.current.onstop = () => {
+        setRecordedChunks(chunks);
+      };
+
+      mediaRecorder.current.start();
+      setRecordingState('recording');
       startTimer();
       
       console.log("Recording started successfully");
     } catch (error) {
-      console.error("Error in startRecording:", error);
+      console.error("Error starting recording:", error);
       toast({
         variant: "destructive",
         title: "Recording Error",
-        description: "Failed to start recording. Please check camera permissions.",
+        description: "Could not start recording. Please try again.",
       });
-      throw error;
     }
-  }, []);
+  }, [initializeStream, startTimer, toast]);
 
   const stopRecording = useCallback(() => {
     console.log("Stopping recording");
-    if (mediaRecorderRef.current && recordingState !== "idle") {
-      mediaRecorderRef.current.stop();
-      setRecordingState("idle");
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      setTimeLeft(30);
+    if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
+      mediaRecorder.current.stop();
+      stopTimer();
+      setRecordingState('idle');
     }
-  }, [recordingState]);
+  }, [stopTimer]);
 
   const pauseRecording = useCallback(() => {
     console.log("Pausing recording");
-    if (mediaRecorderRef.current && recordingState === "recording") {
-      mediaRecorderRef.current.pause();
-      setRecordingState("paused");
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+    if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
+      mediaRecorder.current.pause();
+      setRecordingState('paused');
     }
-  }, [recordingState]);
+  }, []);
 
   const resumeRecording = useCallback(() => {
     console.log("Resuming recording");
-    if (mediaRecorderRef.current && recordingState === "paused") {
-      mediaRecorderRef.current.resume();
-      setRecordingState("recording");
-      startTimer();
+    if (mediaRecorder.current && mediaRecorder.current.state === 'paused') {
+      mediaRecorder.current.resume();
+      setRecordingState('recording');
     }
-  }, [recordingState]);
-
-  const startTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          stopRecording();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const playRecording = useCallback(() => {
-    if (recordedChunks.length === 0 || !videoRef.current) return;
-
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    videoRef.current.srcObject = null;
-    videoRef.current.src = url;
-    videoRef.current.play().catch(console.error);
-  }, [recordedChunks]);
+  }, []);
 
   const resetRecording = useCallback(() => {
+    console.log("Resetting recording");
     setRecordedChunks([]);
-    setRecordingState("idle");
-    setTimeLeft(30);
-  }, []);
+    resetTimer();
+    setRecordingState('idle');
+  }, [resetTimer]);
 
   return {
     videoRef,
@@ -146,6 +98,8 @@ export const useVideoRecording = () => {
     stopRecording,
     pauseRecording,
     resumeRecording,
+    initializeStream,
+    downloadVideo,
     playRecording,
     resetRecording,
   };
