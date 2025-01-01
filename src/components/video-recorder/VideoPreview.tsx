@@ -103,7 +103,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               <RecordingTimer timeLeft={timeLeft} />
             )}
 
-            {/* Only show these controls on mobile */}
+            {/* Mobile-specific UI elements */}
             {isMobile && (
               <>
                 {recordingState === "idle" && !isPlayingBack && (
@@ -142,7 +142,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               </>
             )}
 
-            {/* Show these controls on both mobile and desktop */}
+            {/* Common controls for both mobile and desktop */}
             {recordingState === "idle" && !isPlayingBack && onPlayback && (
               <button
                 onClick={onPlayback}
