@@ -1,15 +1,11 @@
-import { forwardRef, useEffect, useState, memo } from "react";
+import { forwardRef, useEffect, useState, memo, useCallback } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
 import RecordingTimer from "./components/RecordingTimer";
-import RecordingControls from "./RecordingControls";
-import PlaybackOverlay from "./components/PlaybackOverlay";
-import RecordButton from "./components/RecordButton";
-import FullscreenButton from "./components/FullscreenButton";
 import VideoElement from "./components/VideoElement";
-import TapToRecordIndicator from "./components/TapToRecordIndicator";
-import { StopCircle } from "lucide-react";
+import MobileControls from "./components/video-preview/MobileControls";
+import DesktopControls from "./components/video-preview/DesktopControls";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -30,7 +26,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     isRecording,
     timeLeft,
     recordingState,
-    isPlayingBack,
+    isPlayingBack = false,
     onTapToRecord,
     onTapToPause,
     onTapToStop,
@@ -44,13 +40,12 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     const isMobile = useIsMobile();
 
     useEffect(() => {
+      console.log("Setting up video element time tracking");
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
       if (!videoElement?.current) {
         console.log("No video element found");
         return;
       }
-
-      console.log("Setting up video element");
 
       const handleTimeUpdate = () => {
         setCurrentTime(videoElement.current.currentTime);
@@ -65,7 +60,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       };
     }, [ref]);
 
-    const toggleFullscreen = async () => {
+    const toggleFullscreen = useCallback(async () => {
+      console.log("Toggling fullscreen mode");
       const videoContainer = document.querySelector('.video-container') as HTMLElement;
 
       if (!document.fullscreenElement) {
@@ -83,81 +79,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
           console.error("Error attempting to exit fullscreen:", err);
         }
       }
-    };
-
-    const renderMobileUI = () => (
-      <>
-        {recordingState === "idle" && !isPlayingBack && (
-          <>
-            <TapToRecordIndicator />
-            <RecordButton onClick={onTapToRecord!} />
-          </>
-        )}
-
-        {recordingState === "recording" && (
-          <RecordingControls
-            recordingState={recordingState}
-            onTapToPause={onTapToPause}
-            onTapToStop={onTapToStop}
-            hasRecording={false}
-            onStartRecording={() => {}}
-            onStopRecording={() => {}}
-            onPauseRecording={() => {}}
-            onResumeRecording={() => {}}
-            onDownload={onDownload}
-            onPlayback={() => {}}
-          />
-        )}
-
-        {recordingState === "paused" && (
-          <>
-            <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10">
-              Tap to Resume
-            </div>
-            <div
-              className="absolute inset-0 bg-black/50 cursor-pointer"
-              onClick={onTapToResume}
-            />
-          </>
-        )}
-
-        {recordingState === "idle" && !isRecording && (
-          <FullscreenButton
-            isFullscreen={isFullscreen}
-            onClick={toggleFullscreen}
-          />
-        )}
-      </>
-    );
-
-    const renderCommonControls = () => (
-      <>
-        {isPlayingBack && (
-          <>
-            <PlaybackOverlay currentTime={currentTime} />
-            <button
-              onClick={onStopPlayback}
-              className="absolute bottom-8 right-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
-            >
-              <StopCircle className="w-8 h-8" />
-            </button>
-          </>
-        )}
-        {!isMobile && (
-          <RecordingControls
-            recordingState={recordingState}
-            onStartRecording={() => {}}
-            onStopRecording={onTapToStop!}
-            onPauseRecording={onTapToPause}
-            onResumeRecording={onTapToResume}
-            onDownload={onDownload!}
-            onPlayback={onPlayback!}
-            hasRecording={true}
-            isPlayingBack={isPlayingBack}
-          />
-        )}
-      </>
-    );
+    }, []);
 
     return (
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full absolute inset-0' : 'w-full'}`}>
@@ -167,7 +89,32 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             {(recordingState === "recording" || recordingState === "paused") && (
               <RecordingTimer timeLeft={timeLeft} />
             )}
-            {isMobile ? renderMobileUI() : renderCommonControls()}
+            {isMobile ? (
+              <MobileControls
+                recordingState={recordingState}
+                isRecording={isRecording}
+                isPlayingBack={isPlayingBack}
+                isFullscreen={isFullscreen}
+                onTapToRecord={onTapToRecord}
+                onTapToPause={onTapToPause}
+                onTapToStop={onTapToStop}
+                onTapToResume={onTapToResume}
+                onDownload={onDownload}
+                toggleFullscreen={toggleFullscreen}
+              />
+            ) : (
+              <DesktopControls
+                recordingState={recordingState}
+                currentTime={currentTime}
+                isPlayingBack={isPlayingBack}
+                onStopPlayback={onStopPlayback}
+                onTapToStop={onTapToStop}
+                onTapToPause={onTapToPause}
+                onTapToResume={onTapToResume}
+                onPlayback={onPlayback}
+                onDownload={onDownload}
+              />
+            )}
           </AspectRatio>
         </div>
       </div>
