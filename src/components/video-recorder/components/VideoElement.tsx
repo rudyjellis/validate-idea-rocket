@@ -8,17 +8,19 @@ const VideoElement = forwardRef<HTMLVideoElement, VideoElementProps>(({ isPlayin
   console.log("Rendering VideoElement, isPlayingBack:", isPlayingBack);
   
   return (
-    <video
-      ref={ref}
-      autoPlay
-      playsInline
-      controls={false}
-      muted={!isPlayingBack}
-      className="absolute inset-0 w-full h-full object-cover bg-black"
-      webkit-playsinline="true"
-      x-webkit-airplay="allow"
-      preload="metadata"
-    />
+    <div className="relative w-full h-full bg-black">
+      <video
+        ref={ref}
+        autoPlay
+        playsInline
+        controls={false}
+        muted={!isPlayingBack}
+        className="absolute inset-0 w-full h-full object-cover"
+        webkit-playsinline="true"
+        x-webkit-airplay="allow"
+        preload="metadata"
+      />
+    </div>
   );
 });
 

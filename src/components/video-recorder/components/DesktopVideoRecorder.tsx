@@ -22,7 +22,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     resumeRecording,
     initializeStream,
     downloadVideo,
-  } = useVideoRecording();
+  } = useVideoRecording(maxDuration);
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
@@ -116,7 +116,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
         disabled={recordingState !== "idle"}
       />
       
-      <div className="mt-4">
+      <div className="mt-4 relative aspect-video bg-black rounded-lg overflow-hidden">
         <VideoPreview
           ref={videoRef}
           isRecording={recordingState === "recording"}

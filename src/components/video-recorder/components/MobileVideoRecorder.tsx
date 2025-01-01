@@ -4,11 +4,12 @@ import VideoPreview from "../VideoPreview";
 import { useVideoRecording } from "../hooks/useVideoRecording";
 import { useCameraDevices } from "../hooks/useCameraDevices";
 import { useToast } from "@/components/ui/use-toast";
+import MobileRecordingControls from "./MobileRecordingControls";
 
 const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
   const { toast } = useToast();
-  
+
   const {
     videoRef,
     recordingState,
@@ -20,88 +21,69 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     resumeRecording,
     initializeStream,
     downloadVideo,
-  } = useVideoRecording();
+  } = useVideoRecording(maxDuration);
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
   useEffect(() => {
-    const requestPermissions = async () => {
+    const initCamera = async () => {
       try {
-        console.log("Requesting camera permissions on mobile");
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true,
-          audio: true 
-        });
-        
-        stream.getTracks().forEach(track => track.stop());
-        
-        console.log("Camera permissions granted on mobile");
+        const frontCamera = cameras.find(camera => 
+          camera.label.toLowerCase().includes('front')
+        );
 
-        if (cameras.length > 0) {
-          console.log("Mobile: Setting first available camera");
-          const frontCamera = cameras.find(camera => 
-            camera.label.toLowerCase().includes('front')
-          ) || cameras[0];
+        if (frontCamera) {
+          console.log("Mobile: Setting front camera");
           setSelectedCamera(frontCamera.deviceId);
           await initializeStream(frontCamera.deviceId);
+        } else if (cameras.length > 0) {
+          console.log("Mobile: No front camera found, using first available camera");
+          setSelectedCamera(cameras[0].deviceId);
+          await initializeStream(cameras[0].deviceId);
         } else {
           console.log("No cameras available");
           toast({
             title: "No cameras found",
-            description: "Please ensure camera access is enabled.",
+            description: "Please allow camera access to use this feature.",
             variant: "destructive",
           });
         }
       } catch (error) {
-        console.error("Error requesting camera permissions:", error);
+        console.error("Error initializing camera:", error);
         toast({
-          title: "Camera Access Required",
-          description: "Please enable camera access to use this feature.",
+          title: "Camera Error",
+          description: "Failed to initialize camera. Please check permissions.",
           variant: "destructive",
         });
       }
     };
 
-    requestPermissions();
+    initCamera();
   }, [cameras, setSelectedCamera, initializeStream, toast]);
 
-  const handleTapToRecord = async () => {
-    console.log("Tap to record triggered on mobile");
-    if (recordingState === "idle" && selectedCamera) {
-      await startRecording(selectedCamera);
-    } else if (recordingState === "recording") {
-      stopRecording();
+  const handleStartRecording = async () => {
+    console.log("Starting mobile recording with camera:", selectedCamera);
+    if (!selectedCamera) {
+      console.error("No camera selected");
+      toast({
+        title: "Camera Error",
+        description: "Please allow camera access to start recording.",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    setIsPlayingBack(false);
+    await startRecording(selectedCamera);
   };
 
-  const handleDownload = (format: 'webm' | 'mp4') => {
-    console.log("Initiating download on mobile with format:", format);
+  const handleDownload = (format: "webm" | "mp4") => {
+    console.log("Initiating mobile download with format:", format);
     downloadVideo(recordedChunks, format);
   };
 
-  const handlePlayback = () => {
-    console.log("Starting mobile playback");
-    setIsPlayingBack(true);
-    
-    if (videoRef.current) {
-      videoRef.current.onended = () => {
-        console.log("Mobile playback ended");
-        setIsPlayingBack(false);
-      };
-    }
-  };
-
-  const handleStopPlayback = () => {
-    console.log("Stopping mobile playback");
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-    setIsPlayingBack(false);
-  };
-
   return (
-    <div className="w-full h-full">
+    <div className="relative w-full h-full bg-black">
       <div className="absolute inset-0">
         <VideoPreview
           ref={videoRef}
@@ -109,15 +91,15 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
           timeLeft={timeLeft}
           recordingState={recordingState}
           isPlayingBack={isPlayingBack}
-          onTapToRecord={handleTapToRecord}
-          onTapToPause={pauseRecording}
-          onTapToStop={stopRecording}
-          onTapToResume={resumeRecording}
-          onPlayback={recordedChunks.length > 0 ? handlePlayback : undefined}
-          onStopPlayback={handleStopPlayback}
-          onDownload={handleDownload}
         />
       </div>
+
+      <MobileRecordingControls
+        recordingState={recordingState}
+        onTapToPause={pauseRecording}
+        onTapToStop={stopRecording}
+        onDownload={handleDownload}
+      />
     </div>
   );
 };
