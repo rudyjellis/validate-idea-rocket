@@ -94,7 +94,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full absolute inset-0' : 'w-full'}`}>
         <div className="video-container w-full h-full">
           <AspectRatio ratio={isMobile ? 9/16 : 16/9} className="h-full">
-            <VideoElement ref={ref} />
+            <VideoElement ref={ref} isPlayingBack={isPlayingBack} />
             
             {(recordingState === "recording" || recordingState === "paused") && (
               <RecordingTimer timeLeft={timeLeft} />

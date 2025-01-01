@@ -1,11 +1,15 @@
 import { forwardRef } from "react";
 
-const VideoElement = forwardRef<HTMLVideoElement>((_, ref) => (
+interface VideoElementProps {
+  isPlayingBack?: boolean;
+}
+
+const VideoElement = forwardRef<HTMLVideoElement, VideoElementProps>(({ isPlayingBack }, ref) => (
   <video
     ref={ref}
     autoPlay
     playsInline
-    muted
+    muted={!isPlayingBack}
     className="absolute inset-0 w-full h-full object-cover"
     webkit-playsinline="true"
     x-webkit-airplay="allow"
