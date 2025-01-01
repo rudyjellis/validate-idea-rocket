@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { VideoRecorderProps } from "../types";
 import CameraSelector from "../CameraSelector";
 import VideoPreview from "../VideoPreview";
+import RecordingControls from "../RecordingControls";
 import { useVideoRecording } from "../hooks/useVideoRecording";
 import { useCameraDevices } from "../hooks/useCameraDevices";
 

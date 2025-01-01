@@ -24,6 +24,8 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     downloadVideo,
   } = useVideoRecording();
 
+  const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
+
   useEffect(() => {
     const requestPermissions = async () => {
       try {
