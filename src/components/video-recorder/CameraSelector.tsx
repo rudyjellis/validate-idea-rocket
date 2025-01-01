@@ -1,6 +1,3 @@
-Here is the refactored code for `src/components/video-recorder/CameraSelector.tsx`:
-
-```tsx
 import { Camera } from "lucide-react";
 import {
   Select,
