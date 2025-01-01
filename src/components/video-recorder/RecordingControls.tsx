@@ -72,7 +72,7 @@ const RecordingControls = ({
               <Video className="h-5 w-5" />,
               "Start Recording",
               "default",
-              hasRecording
+              false
             )}
             {hasRecording && (
               <>
