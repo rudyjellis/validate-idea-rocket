@@ -35,60 +35,81 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     onStopPlayback,
     onDownload
   }, ref) => {
-    const [currentTime, setCurrentTime] = useState(0);
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    // State management with descriptive names
+    const [currentTime, setCurrentTime] = useState<number>(0);
+    const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+    
+    // Custom hooks
     const isMobile = useIsMobile();
 
+    // Time tracking effect with cleanup
     useEffect(() => {
-      console.log("Setting up video element time tracking");
+      console.log("[VideoPreview] Setting up video element time tracking");
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
+      
       if (!videoElement?.current) {
-        console.log("No video element found");
+        console.log("[VideoPreview] No video element found");
         return;
       }
 
       const handleTimeUpdate = () => {
-        setCurrentTime(videoElement.current.currentTime);
+        const newTime = videoElement.current.currentTime;
+        console.log("[VideoPreview] Time updated:", newTime);
+        setCurrentTime(newTime);
       };
 
       videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
 
+      // Cleanup function
       return () => {
+        console.log("[VideoPreview] Cleaning up time tracking");
         if (videoElement.current) {
           videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
         }
       };
     }, [ref]);
 
+    // Memoized fullscreen handler
     const toggleFullscreen = useCallback(async () => {
-      console.log("Toggling fullscreen mode");
+      console.log("[VideoPreview] Toggling fullscreen mode");
       const videoContainer = document.querySelector('.video-container') as HTMLElement;
 
-      if (!document.fullscreenElement) {
-        try {
+      try {
+        if (!document.fullscreenElement) {
           await videoContainer.requestFullscreen();
           setIsFullscreen(true);
-        } catch (err) {
-          console.error("Error attempting to enable fullscreen:", err);
-        }
-      } else {
-        try {
+          console.log("[VideoPreview] Entered fullscreen mode");
+        } else {
           await document.exitFullscreen();
           setIsFullscreen(false);
-        } catch (err) {
-          console.error("Error attempting to exit fullscreen:", err);
+          console.log("[VideoPreview] Exited fullscreen mode");
         }
+      } catch (err) {
+        console.error("[VideoPreview] Fullscreen error:", err);
       }
     }, []);
 
+    // Memoized container classes for better performance
+    const containerClasses = `relative bg-black rounded-lg overflow-hidden transform-gpu ${
+      isMobile ? 'w-full h-full absolute inset-0' : 'w-full'
+    }`;
+
     return (
-      <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full absolute inset-0' : 'w-full'}`}>
+      <div className={containerClasses}>
         <div className="video-container w-full h-full transform-gpu">
-          <AspectRatio ratio={isMobile ? 9 / 16 : 16 / 9} className="h-full">
-            <VideoElement ref={ref} isPlayingBack={isPlayingBack} />
+          <AspectRatio 
+            ratio={isMobile ? 9 / 16 : 16 / 9} 
+            className="h-full"
+          >
+            <VideoElement 
+              ref={ref} 
+              isPlayingBack={isPlayingBack} 
+            />
+            
             {(recordingState === "recording" || recordingState === "paused") && (
               <RecordingTimer timeLeft={timeLeft} />
             )}
+
             {isMobile ? (
               <MobileControls
                 recordingState={recordingState}
@@ -122,6 +143,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
   }
 );
 
+// Add display name for better debugging
 VideoPreview.displayName = "VideoPreview";
 
+// Memoize the component to prevent unnecessary re-renders
 export default memo(VideoPreview);
