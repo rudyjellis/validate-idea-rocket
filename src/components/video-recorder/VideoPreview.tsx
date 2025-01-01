@@ -9,7 +9,7 @@ import RecordButton from "./components/RecordButton";
 import FullscreenButton from "./components/FullscreenButton";
 import VideoElement from "./components/VideoElement";
 import TapToRecordIndicator from "./components/TapToRecordIndicator";
-import { Play, StopCircle } from "lucide-react";
+import { StopCircle } from "lucide-react";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -26,14 +26,14 @@ interface VideoPreviewProps {
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
-  ({ 
-    isRecording, 
-    timeLeft, 
-    recordingState, 
-    isPlayingBack, 
-    onTapToRecord, 
-    onTapToPause, 
-    onTapToStop, 
+  ({
+    isRecording,
+    timeLeft,
+    recordingState,
+    isPlayingBack,
+    onTapToRecord,
+    onTapToPause,
+    onTapToStop,
     onTapToResume,
     onPlayback,
     onStopPlayback,
@@ -51,7 +51,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       }
 
       console.log("Setting up video element");
-      
+
       const handleTimeUpdate = () => {
         setCurrentTime(videoElement.current.currentTime);
       };
@@ -76,7 +76,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
     const toggleFullscreen = async () => {
       const videoContainer = document.querySelector('.video-container') as HTMLElement;
-      
+
       if (!document.fullscreenElement) {
         try {
           await videoContainer.requestFullscreen();
@@ -94,89 +94,89 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       }
     };
 
+    const renderMobileUI = () => (
+      <>
+        {recordingState === "idle" && !isPlayingBack && (
+          <>
+            <TapToRecordIndicator />
+            <RecordButton onClick={onTapToRecord!} />
+          </>
+        )}
+
+        {recordingState === "recording" && (
+          <RecordingControls
+            recordingState={recordingState}
+            onTapToPause={onTapToPause}
+            onTapToStop={onTapToStop}
+            hasRecording={false}
+            onStartRecording={() => {}}
+            onStopRecording={() => {}}
+            onPauseRecording={() => {}}
+            onResumeRecording={() => {}}
+            onDownload={onDownload}
+            onPlayback={() => {}}
+          />
+        )}
+
+        {recordingState === "paused" && (
+          <>
+            <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10">
+              Tap to Resume
+            </div>
+            <div
+              className="absolute inset-0 bg-black/50 cursor-pointer"
+              onClick={onTapToResume}
+            />
+          </>
+        )}
+
+        {recordingState === "idle" && !isRecording && (
+          <FullscreenButton
+            isFullscreen={isFullscreen}
+            onClick={toggleFullscreen}
+          />
+        )}
+      </>
+    );
+
+    const renderCommonControls = () => (
+      <>
+        {isPlayingBack && (
+          <>
+            <PlaybackOverlay currentTime={currentTime} />
+            <button
+              onClick={onStopPlayback}
+              className="absolute bottom-8 right-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
+            >
+              <StopCircle className="w-8 h-8" />
+            </button>
+          </>
+        )}
+        {!isMobile && (
+          <RecordingControls
+            recordingState={recordingState}
+            onStartRecording={() => {}}
+            onStopRecording={onTapToStop!}
+            onPauseRecording={onTapToPause}
+            onResumeRecording={onTapToResume}
+            onDownload={onDownload!}
+            onPlayback={onPlayback!}
+            hasRecording={true}
+            isPlayingBack={isPlayingBack}
+          />
+        )}
+      </>
+    );
+
     return (
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full absolute inset-0' : 'w-full'}`}>
         <div className="video-container w-full h-full">
-          <AspectRatio ratio={isMobile ? 9/16 : 16/9} className="h-full">
+          <AspectRatio ratio={isMobile ? 9 / 16 : 16 / 9} className="h-full">
             <VideoElement ref={ref} isPlayingBack={isPlayingBack} />
-            
             {(recordingState === "recording" || recordingState === "paused") && (
               <RecordingTimer timeLeft={timeLeft} />
             )}
-
-            {/* Mobile-specific UI elements */}
-            {isMobile && (
-              <>
-                {recordingState === "idle" && !isPlayingBack && (
-                  <TapToRecordIndicator />
-                )}
-
-                {recordingState === "idle" && !isPlayingBack && (
-                  <RecordButton onClick={onTapToRecord!} />
-                )}
-
-                {recordingState === "recording" && (
-                  <RecordingControls 
-                    recordingState={recordingState}
-                    onTapToPause={onTapToPause} 
-                    onTapToStop={onTapToStop}
-                    hasRecording={false}
-                    onStartRecording={() => {}}
-                    onStopRecording={() => {}}
-                    onPauseRecording={() => {}}
-                    onResumeRecording={() => {}}
-                    onDownload={onDownload}
-                    onPlayback={() => {}}
-                  />
-                )}
-
-                {recordingState === "paused" && (
-                  <>
-                    <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10">
-                      Tap to Resume
-                    </div>
-                    <div 
-                      className="absolute inset-0 bg-black/50 cursor-pointer"
-                      onClick={onTapToResume}
-                    />
-                  </>
-                )}
-
-                {recordingState === "idle" && !isRecording && (
-                  <FullscreenButton 
-                    isFullscreen={isFullscreen} 
-                    onClick={toggleFullscreen} 
-                  />
-                )}
-              </>
-            )}
-
-            {/* Common controls for both mobile and desktop */}
-            {isPlayingBack && (
-              <>
-                <PlaybackOverlay currentTime={currentTime} />
-                <button
-                  onClick={onStopPlayback}
-                  className="absolute bottom-8 right-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
-                >
-                  <StopCircle className="w-8 h-8" />
-                </button>
-              </>
-            )}
-
-            {!isMobile && (
-              <RecordingControls
-                recordingState={recordingState}
-                onStartRecording={() => {}}
-                onStopRecording={onTapToStop!}
-                onPauseRecording={onTapToPause}
-                onResumeRecording={onTapToResume}
-                onDownload={onDownload!}
-                onPlayback={onPlayback!}
-                hasRecording={true}
-                isPlayingBack={isPlayingBack}
-              />
-            )}
+            {isMobile ? renderMobileUI() : renderCommonControls()}
           </AspectRatio>
         </div>
       </div>
