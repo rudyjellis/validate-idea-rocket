@@ -107,6 +107,14 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     }
   };
 
+  const handleRestart = async () => {
+    console.log("Restarting recording");
+    if (selectedCamera) {
+      await initializeStream(selectedCamera);
+      setIsPlayingBack(false);
+    }
+  };
+
   const handleTapToRecord = async () => {
     console.log("Tap to record triggered");
     if (recordingState === "idle") {
@@ -168,6 +176,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             onResumeRecording={resumeRecording}
             onDownload={downloadVideo}
             onPlayback={handlePlayback}
+            onRestart={handleRestart}
             hasRecording={recordedChunks.length > 0}
           />
         </div>

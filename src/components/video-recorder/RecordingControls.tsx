@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Video, StopCircle, Pause, Play, Download } from "lucide-react";
+import { Video, StopCircle, Pause, Play, Download, RotateCw } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,7 @@ interface RecordingControlsProps {
   onResumeRecording: () => void;
   onDownload: (format: 'webm' | 'mp4') => void;
   onPlayback: () => void;
+  onRestart: () => void;
   hasRecording: boolean;
 }
 
@@ -33,6 +34,7 @@ const RecordingControls = ({
   onResumeRecording,
   onDownload,
   onPlayback,
+  onRestart,
   hasRecording,
 }: RecordingControlsProps) => {
   const renderControlButton = (
@@ -72,13 +74,22 @@ const RecordingControls = ({
               "default",
               hasRecording
             )}
-            {hasRecording &&
-              renderControlButton(
-                onPlayback,
-                <Play className="h-5 w-5" />,
-                "Play Recording",
-                "secondary"
-              )}
+            {hasRecording && (
+              <>
+                {renderControlButton(
+                  onPlayback,
+                  <Play className="h-5 w-5" />,
+                  "Play Recording",
+                  "secondary"
+                )}
+                {renderControlButton(
+                  onRestart,
+                  <RotateCw className="h-5 w-5" />,
+                  "Restart Recording",
+                  "secondary"
+                )}
+              </>
+            )}
           </>
         ) : (
           <>
