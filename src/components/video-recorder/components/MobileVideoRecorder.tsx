@@ -8,6 +8,7 @@ import MobileRecordingControls from "./MobileRecordingControls";
 
 const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const { toast } = useToast();
 
   const {
@@ -28,6 +29,9 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
   useEffect(() => {
     const initCamera = async () => {
       try {
+        setIsInitializing(true);
+        console.log("Mobile: Attempting to initialize camera");
+        
         const frontCamera = cameras.find(camera => 
           camera.label.toLowerCase().includes('front')
         );
@@ -36,15 +40,17 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
           console.log("Mobile: Setting front camera");
           setSelectedCamera(frontCamera.deviceId);
           await initializeStream(frontCamera.deviceId);
+          console.log("Mobile: Front camera initialized successfully");
         } else if (cameras.length > 0) {
           console.log("Mobile: No front camera found, using first available camera");
           setSelectedCamera(cameras[0].deviceId);
           await initializeStream(cameras[0].deviceId);
+          console.log("Mobile: Camera initialized successfully");
         } else {
           console.log("No cameras available");
           toast({
-            title: "No cameras found",
-            description: "Please allow camera access to use this feature.",
+            title: "Camera Access Required",
+            description: "Please allow camera access to use this feature. You might need to check your browser settings.",
             variant: "destructive",
           });
         }
@@ -52,9 +58,11 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
         console.error("Error initializing camera:", error);
         toast({
           title: "Camera Error",
-          description: "Failed to initialize camera. Please check permissions.",
+          description: "Unable to access camera. Please check permissions and try again.",
           variant: "destructive",
         });
+      } finally {
+        setIsInitializing(false);
       }
     };
 
@@ -84,6 +92,11 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
 
   return (
     <div className="relative w-full h-full bg-black">
+      {isInitializing && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+          <div className="text-white">Initializing camera...</div>
+        </div>
+      )}
       <div className="absolute inset-0">
         <VideoPreview
           ref={videoRef}

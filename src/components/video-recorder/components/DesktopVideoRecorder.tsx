@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const { toast } = useToast();
   
   const {
@@ -29,26 +30,32 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
   useEffect(() => {
     const initCamera = async () => {
       try {
+        setIsInitializing(true);
+        console.log("Desktop: Attempting to initialize camera");
+        
         if (cameras.length > 0) {
           console.log("Desktop: Setting first available camera");
           const firstCamera = cameras[0].deviceId;
           setSelectedCamera(firstCamera);
           await initializeStream(firstCamera);
+          console.log("Desktop: Camera initialized successfully");
         } else {
           console.log("No cameras available");
           toast({
             title: "No cameras found",
-            description: "Please connect a camera to use this feature.",
+            description: "Please connect a camera and allow access to use this feature.",
             variant: "destructive",
           });
         }
       } catch (error) {
         console.error("Error initializing camera:", error);
         toast({
-          title: "Camera Error",
-          description: "Failed to initialize camera. Please try again.",
+          title: "Camera Access Error",
+          description: "Please make sure you've granted camera permissions and try refreshing the page.",
           variant: "destructive",
         });
+      } finally {
+        setIsInitializing(false);
       }
     };
 
@@ -56,13 +63,26 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
   }, [cameras, setSelectedCamera, initializeStream, toast]);
 
   const handleCameraChange = async (deviceId: string) => {
-    console.log("Camera changed to:", deviceId);
-    if (recordingState !== "idle") {
-      stopRecording();
+    try {
+      console.log("Camera changed to:", deviceId);
+      setIsInitializing(true);
+      
+      if (recordingState !== "idle") {
+        stopRecording();
+      }
+      
+      setSelectedCamera(deviceId);
+      await initializeStream(deviceId);
+    } catch (error) {
+      console.error("Error changing camera:", error);
+      toast({
+        title: "Camera Switch Error",
+        description: "Failed to switch cameras. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsInitializing(false);
     }
-    
-    setSelectedCamera(deviceId);
-    await initializeStream(deviceId);
   };
 
   const handleStartRecording = async () => {
@@ -113,10 +133,15 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
         cameras={cameras}
         selectedCamera={selectedCamera}
         onCameraChange={handleCameraChange}
-        disabled={recordingState !== "idle"}
+        disabled={recordingState !== "idle" || isInitializing}
       />
       
       <div className="mt-4 relative aspect-video bg-black rounded-lg overflow-hidden">
+        {isInitializing && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+            <div className="text-white">Initializing camera...</div>
+          </div>
+        )}
         <VideoPreview
           ref={videoRef}
           isRecording={recordingState === "recording"}
