@@ -27,20 +27,26 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
 
+  // Modified useEffect to prevent initialization loop
   useEffect(() => {
+    let isMounted = true;
+
     const initCamera = async () => {
       try {
-        setIsInitializing(true);
-        console.log("Desktop: Attempting to initialize camera");
+        if (!isMounted) return;
         
-        if (cameras.length > 0) {
-          console.log("Desktop: Setting first available camera");
+        console.log("[DesktopVideoRecorder] Starting camera initialization");
+        setIsInitializing(true);
+
+        // Only initialize if we have cameras and no stream is active
+        if (cameras.length > 0 && !videoRef.current?.srcObject) {
+          console.log("[DesktopVideoRecorder] Found cameras, selecting first camera");
           const firstCamera = cameras[0].deviceId;
           setSelectedCamera(firstCamera);
           await initializeStream(firstCamera);
-          console.log("Desktop: Camera initialized successfully");
-        } else {
-          console.log("No cameras available");
+          console.log("[DesktopVideoRecorder] Camera initialized successfully");
+        } else if (cameras.length === 0) {
+          console.log("[DesktopVideoRecorder] No cameras available");
           toast({
             title: "No cameras found",
             description: "Please connect a camera and allow access to use this feature.",
@@ -48,23 +54,33 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
           });
         }
       } catch (error) {
-        console.error("Error initializing camera:", error);
+        if (!isMounted) return;
+        
+        console.error("[DesktopVideoRecorder] Camera initialization error:", error);
         toast({
           title: "Camera Access Error",
           description: "Please make sure you've granted camera permissions and try refreshing the page.",
           variant: "destructive",
         });
       } finally {
-        setIsInitializing(false);
+        if (isMounted) {
+          setIsInitializing(false);
+        }
       }
     };
 
     initCamera();
-  }, [cameras, setSelectedCamera, initializeStream, toast]);
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      console.log("[DesktopVideoRecorder] Cleaning up camera initialization");
+    };
+  }, [cameras.length]); // Only re-run when cameras array length changes
 
   const handleCameraChange = async (deviceId: string) => {
     try {
-      console.log("Camera changed to:", deviceId);
+      console.log("[DesktopVideoRecorder] Changing camera to:", deviceId);
       setIsInitializing(true);
       
       if (recordingState !== "idle") {
@@ -74,7 +90,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
       setSelectedCamera(deviceId);
       await initializeStream(deviceId);
     } catch (error) {
-      console.error("Error changing camera:", error);
+      console.error("[DesktopVideoRecorder] Camera switch error:", error);
       toast({
         title: "Camera Switch Error",
         description: "Failed to switch cameras. Please try again.",
