@@ -10,7 +10,7 @@ import FullscreenButton from "./components/FullscreenButton";
 import ReplayButton from "./components/ReplayButton";
 import VideoElement from "./components/VideoElement";
 import TapToRecordIndicator from "./components/TapToRecordIndicator";
-import { StopCircle } from "lucide-react";
+import { Play, StopCircle } from "lucide-react";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -150,7 +150,13 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             )}
 
             {isMobile && recordingState === "idle" && !isPlayingBack && onPlayback && (
-              <ReplayButton onClick={onPlayback} />
+              <button
+                onClick={onPlayback}
+                className="absolute bottom-8 left-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
+                aria-label="Play recording"
+              >
+                <Play className="w-8 h-8" />
+              </button>
             )}
           </AspectRatio>
         </div>
