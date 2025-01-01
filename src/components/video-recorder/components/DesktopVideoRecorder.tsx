@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import type { VideoRecorderProps } from "../types";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import CameraSelector from "../CameraSelector";
-import VideoPreview from "../VideoPreview";
 import RecordingControls from "../RecordingControls";
 import { useVideoRecording } from "../hooks/useVideoRecording";
 import { useCameraDevices } from "../hooks/useCameraDevices";
-import { useToast } from "@/components/ui/use-toast";
+import CameraInitializer from "./desktop/CameraInitializer";
+import VideoPreviewContainer from "./desktop/VideoPreviewContainer";
+import type { VideoRecorderProps } from "../types";
 
 const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
@@ -26,57 +27,6 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
   } = useVideoRecording(maxDuration);
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
-
-  // Modified useEffect to prevent initialization loop
-  useEffect(() => {
-    let isMounted = true;
-
-    const initCamera = async () => {
-      try {
-        if (!isMounted) return;
-        
-        console.log("[DesktopVideoRecorder] Starting camera initialization");
-        setIsInitializing(true);
-
-        // Only initialize if we have cameras and no stream is active
-        if (cameras.length > 0 && !videoRef.current?.srcObject) {
-          console.log("[DesktopVideoRecorder] Found cameras, selecting first camera");
-          const firstCamera = cameras[0].deviceId;
-          setSelectedCamera(firstCamera);
-          await initializeStream(firstCamera);
-          console.log("[DesktopVideoRecorder] Camera initialized successfully");
-        } else if (cameras.length === 0) {
-          console.log("[DesktopVideoRecorder] No cameras available");
-          toast({
-            title: "No cameras found",
-            description: "Please connect a camera and allow access to use this feature.",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        if (!isMounted) return;
-        
-        console.error("[DesktopVideoRecorder] Camera initialization error:", error);
-        toast({
-          title: "Camera Access Error",
-          description: "Please make sure you've granted camera permissions and try refreshing the page.",
-          variant: "destructive",
-        });
-      } finally {
-        if (isMounted) {
-          setIsInitializing(false);
-        }
-      }
-    };
-
-    initCamera();
-
-    // Cleanup function
-    return () => {
-      isMounted = false;
-      console.log("[DesktopVideoRecorder] Cleaning up camera initialization");
-    };
-  }, [cameras.length]); // Only re-run when cameras array length changes
 
   const handleCameraChange = async (deviceId: string) => {
     try {
@@ -145,6 +95,14 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
 
   return (
     <div className="w-full max-w-4xl mx-auto">
+      <CameraInitializer
+        cameras={cameras}
+        setSelectedCamera={setSelectedCamera}
+        initializeStream={initializeStream}
+        setIsInitializing={setIsInitializing}
+        videoRef={videoRef}
+      />
+      
       <CameraSelector
         cameras={cameras}
         selectedCamera={selectedCamera}
@@ -152,23 +110,17 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
         disabled={recordingState !== "idle" || isInitializing}
       />
       
-      <div className="mt-4 relative aspect-video bg-black rounded-lg overflow-hidden">
-        {isInitializing && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
-            <div className="text-white">Initializing camera...</div>
-          </div>
-        )}
-        <VideoPreview
-          ref={videoRef}
-          isRecording={recordingState === "recording"}
-          timeLeft={timeLeft}
-          recordingState={recordingState}
-          isPlayingBack={isPlayingBack}
-          onPlayback={recordedChunks.length > 0 ? handlePlayback : undefined}
-          onStopPlayback={handleStopPlayback}
-          onDownload={handleDownload}
-        />
-      </div>
+      <VideoPreviewContainer
+        videoRef={videoRef}
+        isInitializing={isInitializing}
+        recordingState={recordingState}
+        timeLeft={timeLeft}
+        isPlayingBack={isPlayingBack}
+        recordedChunks={recordedChunks}
+        onPlayback={handlePlayback}
+        onStopPlayback={handleStopPlayback}
+        onDownload={handleDownload}
+      />
 
       <div className="mt-4">
         <RecordingControls
