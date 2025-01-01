@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import type { RecordingState } from '../types';
+import type { RecordingState, VideoFormat } from '../types';
 import { useMediaStream } from './useMediaStream';
 import { useMediaRecorder } from './useMediaRecorder';
 import { useRecordingTimer } from './useRecordingTimer';
@@ -16,7 +16,7 @@ export const useVideoRecording = () => {
   const { downloadVideo } = useVideoDownload();
   const { timeLeft, startTimer, stopTimer, resetTimer } = useRecordingTimer();
   const { playRecording } = useVideoPlayback();
-  
+
   const mediaRecorder = useRef<MediaRecorder | null>(null);
 
   const startRecording = useCallback(async (selectedCamera: string) => {
@@ -100,7 +100,6 @@ export const useVideoRecording = () => {
     resumeRecording,
     initializeStream,
     downloadVideo,
-    playRecording,
     resetRecording,
   };
 };

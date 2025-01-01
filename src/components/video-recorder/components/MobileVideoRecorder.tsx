@@ -20,7 +20,7 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     pauseRecording,
     resumeRecording,
     initializeStream,
-    playRecording,
+    resetRecording,
   } = useVideoRecording();
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
@@ -39,6 +39,12 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
         
         setHasPermission(true);
         console.log("Camera permissions granted on mobile");
+
+        // Initialize with the first available camera
+        if (cameras.length > 0) {
+          setSelectedCamera(cameras[0].deviceId);
+          await initializeStream(cameras[0].deviceId);
+        }
       } catch (error) {
         console.error("Error requesting camera permissions:", error);
         setHasPermission(false);
@@ -51,41 +57,20 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     };
 
     requestPermissions();
-  }, []);
+  }, [cameras, setSelectedCamera, toast]);
 
   const handleTapToRecord = async () => {
     console.log("Tap to record triggered on mobile");
-    if (recordingState === "idle") {
-      await handleStartRecording();
+    if (recordingState === "idle" && selectedCamera) {
+      await startRecording(selectedCamera);
     } else if (recordingState === "recording") {
       stopRecording();
-    }
-  };
-
-  const handleStartRecording = async () => {
-    console.log("Starting mobile recording with camera:", selectedCamera);
-    if (!selectedCamera) {
-      console.error("No camera selected on mobile");
-      return;
-    }
-    
-    setIsPlayingBack(false);
-    try {
-      await startRecording(selectedCamera);
-    } catch (error) {
-      console.error("Error starting mobile recording:", error);
-      toast({
-        variant: "destructive",
-        title: "Recording Error",
-        description: "Could not start recording. Please try again.",
-      });
     }
   };
 
   const handlePlayback = () => {
     console.log("Starting mobile playback");
     setIsPlayingBack(true);
-    playRecording();
     
     if (videoRef.current) {
       videoRef.current.onended = () => {

@@ -20,7 +20,6 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     resumeRecording,
     initializeStream,
     downloadVideo,
-    playRecording,
     resetRecording,
   } = useVideoRecording();
 
@@ -36,14 +35,12 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
       if (!selectedCamera) {
         console.log("Desktop: Setting first available camera");
         setSelectedCamera(cameras[0].deviceId);
-        await initializeStream(cameras[0].deviceId).catch(error => {
-          console.error("Error initializing desktop camera:", error);
-        });
+        await initializeStream(cameras[0].deviceId);
       }
     };
 
     initCamera();
-  }, [cameras]);
+  }, [cameras, selectedCamera, setSelectedCamera, initializeStream]);
 
   const handleCameraChange = async (deviceId: string) => {
     console.log("Camera changed to:", deviceId);
@@ -52,9 +49,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     }
     
     setSelectedCamera(deviceId);
-    await initializeStream(deviceId).catch(error => {
-      console.error("Error changing camera:", error);
-    });
+    await initializeStream(deviceId);
   };
 
   const handleStartRecording = async () => {
@@ -65,17 +60,12 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     }
     
     setIsPlayingBack(false);
-    try {
-      await startRecording(selectedCamera);
-    } catch (error) {
-      console.error("Error starting recording:", error);
-    }
+    await startRecording(selectedCamera);
   };
 
   const handlePlayback = () => {
     console.log("Starting playback");
     setIsPlayingBack(true);
-    playRecording();
     
     if (videoRef.current) {
       videoRef.current.onended = () => {
@@ -92,6 +82,10 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
       videoRef.current.currentTime = 0;
     }
     setIsPlayingBack(false);
+  };
+
+  const handleDownload = (format: "webm" | "mp4") => {
+    downloadVideo(format);
   };
 
   return (
@@ -122,7 +116,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
           onStopRecording={stopRecording}
           onPauseRecording={pauseRecording}
           onResumeRecording={resumeRecording}
-          onDownload={downloadVideo}
+          onDownload={handleDownload}
           onPlayback={handlePlayback}
           onStopPlayback={handleStopPlayback}
           hasRecording={recordedChunks.length > 0}
