@@ -1,3 +1,6 @@
+Here is the refactored code for `src/components/video-recorder/CameraSelector.tsx`:
+
+```tsx
 import { Camera } from "lucide-react";
 import {
   Select,
@@ -25,20 +28,15 @@ const CameraSelector = ({
   const isMobile = useIsMobile();
 
   const formatCameraLabel = (camera: MediaDeviceInfo) => {
-    if (isMobile && camera.label.toLowerCase().includes('front')) {
-      return "Front Cam";
-    }
-    return camera.label || `Camera ${cameras.indexOf(camera) + 1}`;
+    return isMobile && camera.label.toLowerCase().includes('front')
+      ? "Front Cam"
+      : camera.label || `Camera ${cameras.indexOf(camera) + 1}`;
   };
 
-  // Filter cameras for mobile devices to only show front camera
   const filteredCameras = isMobile
-    ? cameras.filter((camera) => 
-        camera.label.toLowerCase().includes('front')
-      )
+    ? cameras.filter(camera => camera.label.toLowerCase().includes('front'))
     : cameras;
 
-  // If on mobile and no cameras are shown after filtering, or if there's only one camera, hide the selector
   if (filteredCameras.length <= 1) return null;
 
   return (
@@ -52,7 +50,7 @@ const CameraSelector = ({
           <SelectValue placeholder="Select camera" />
         </SelectTrigger>
         <SelectContent>
-          {filteredCameras.map((camera) => (
+          {filteredCameras.map(camera => (
             <SelectItem key={camera.deviceId} value={camera.deviceId}>
               <div className="flex items-center gap-2">
                 <Camera className="h-4 w-4" />
@@ -67,3 +65,9 @@ const CameraSelector = ({
 };
 
 export default CameraSelector;
+```
+
+Refactoring focuses on:
+- Simplifying the `formatCameraLabel` function.
+- Removing unnecessary comments to improve readability.
+- Keeping consistent formatting and simplifying the `filteredCameras` logic.
