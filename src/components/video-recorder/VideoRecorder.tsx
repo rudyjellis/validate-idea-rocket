@@ -23,6 +23,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     initializeStream,
     downloadVideo,
     playRecording,
+    resetRecording,
   } = useVideoRecording();
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
@@ -35,7 +36,6 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
       }
 
       if (isMobile) {
-        // Try to find front camera first
         const frontCamera = cameras.find(camera => 
           camera.label.toLowerCase().includes('front') ||
           camera.label.toLowerCase().includes('user') ||
@@ -112,6 +112,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     if (selectedCamera) {
       await initializeStream(selectedCamera);
       setIsPlayingBack(false);
+      resetRecording();
     }
   };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { RecordingState, VideoFormat } from '../types';
 import { useMediaStream } from './useMediaStream';
 import { useRecordingTimer } from './useRecordingTimer';
@@ -15,6 +15,7 @@ export const useVideoRecording = () => {
     pauseRecording: pauseMediaRecorder,
     resumeRecording: resumeMediaRecorder,
     downloadRecording,
+    resetRecording: resetMediaRecorder,
   } = useMediaRecorder();
 
   const startRecordingProcess = async (selectedCamera: string) => {
@@ -46,6 +47,11 @@ export const useVideoRecording = () => {
     setRecordingState("recording");
   };
 
+  const resetRecording = () => {
+    resetMediaRecorder();
+    setRecordingState("idle");
+  };
+
   const playRecording = () => {
     if (recordedChunks.length === 0 || !videoRef.current) return;
 
@@ -68,5 +74,6 @@ export const useVideoRecording = () => {
     initializeStream,
     downloadVideo: downloadRecording,
     playRecording,
+    resetRecording,
   };
 };

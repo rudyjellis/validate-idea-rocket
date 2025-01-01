@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState, useRef } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import type { VideoFormat } from '../types';
 
@@ -81,6 +81,11 @@ export const useMediaRecorder = () => {
     }
   };
 
+  const resetRecording = () => {
+    setRecordedChunks([]);
+    console.log("Recording state reset");
+  };
+
   const downloadRecording = (format: VideoFormat) => {
     if (recordedChunks.length === 0) return;
 
@@ -106,5 +111,6 @@ export const useMediaRecorder = () => {
     pauseRecording,
     resumeRecording,
     downloadRecording,
+    resetRecording,
   };
 };
