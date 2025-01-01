@@ -107,13 +107,13 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
     }
   };
 
-  const handleRestart = async () => {
-    console.log("Restarting recording");
-    if (selectedCamera) {
-      await initializeStream(selectedCamera);
-      setIsPlayingBack(false);
-      resetRecording();
+  const handleStopPlayback = () => {
+    console.log("Stopping playback");
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
     }
+    setIsPlayingBack(false);
   };
 
   const handleTapToRecord = async () => {
@@ -163,6 +163,7 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             onTapToStop={handleTapToStop}
             onTapToResume={resumeRecording}
             onPlayback={recordedChunks.length > 0 ? handlePlayback : undefined}
+            onStopPlayback={handleStopPlayback}
           />
         </div>
       </div>
@@ -177,7 +178,6 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
             onResumeRecording={resumeRecording}
             onDownload={downloadVideo}
             onPlayback={handlePlayback}
-            onRestart={handleRestart}
             hasRecording={recordedChunks.length > 0}
           />
         </div>

@@ -10,6 +10,7 @@ import FullscreenButton from "./components/FullscreenButton";
 import ReplayButton from "./components/ReplayButton";
 import VideoElement from "./components/VideoElement";
 import TapToRecordIndicator from "./components/TapToRecordIndicator";
+import { StopCircle } from "lucide-react";
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -21,6 +22,7 @@ interface VideoPreviewProps {
   onTapToStop?: () => void;
   onTapToResume?: () => void;
   onPlayback?: () => void;
+  onStopPlayback?: () => void;
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
@@ -33,7 +35,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     onTapToPause, 
     onTapToStop, 
     onTapToResume,
-    onPlayback 
+    onPlayback,
+    onStopPlayback 
   }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -128,7 +131,15 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             )}
 
             {isPlayingBack && (
-              <PlaybackOverlay currentTime={currentTime} />
+              <>
+                <PlaybackOverlay currentTime={currentTime} />
+                <button
+                  onClick={onStopPlayback}
+                  className="absolute bottom-8 right-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
+                >
+                  <StopCircle className="w-8 h-8" />
+                </button>
+              </>
             )}
 
             {isMobile && recordingState === "idle" && !isRecording && (
