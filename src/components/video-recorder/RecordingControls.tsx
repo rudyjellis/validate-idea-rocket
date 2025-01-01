@@ -22,7 +22,7 @@ interface RecordingControlsProps {
   onResumeRecording: () => void;
   onDownload: (format: 'webm' | 'mp4') => void;
   onPlayback: () => void;
-  onRestart: () => void;
+  onRestart?: () => void; // Made optional with '?'
   hasRecording: boolean;
 }
 
