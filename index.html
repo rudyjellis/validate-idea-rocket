@@ -11,7 +11,26 @@
 
   <body>
     <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script>
+      // Handle cross-origin communication
+      window.addEventListener('message', function(event) {
+        // Check if the origin is from one of our allowed domains
+        const allowedOrigins = [
+          'https://gptengineer.app',
+          'https://lovable.dev',
+          'http://localhost:3000',
+          'https://validateapp.netlify.app'
+        ];
+        
+        if (allowedOrigins.includes(event.origin)) {
+          // Process the message
+          console.log('Received message from allowed origin:', event.origin);
+        } else {
+          console.log('Received message from unauthorized origin:', event.origin);
+        }
+      }, false);
+    </script>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module" crossorigin="anonymous"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
