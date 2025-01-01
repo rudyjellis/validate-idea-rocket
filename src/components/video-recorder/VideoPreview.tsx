@@ -45,7 +45,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
     useEffect(() => {
       const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
-      if (!videoElement.current) {
+      if (!videoElement?.current) {
         console.log("No video element found");
         return;
       }
@@ -56,20 +56,11 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
         setCurrentTime(videoElement.current.currentTime);
       };
 
-      const handleLoadedMetadata = () => {
-        console.log("Video metadata loaded");
-        videoElement.current.play().catch(error => {
-          console.error("Error playing video:", error);
-        });
-      };
-
       videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
-      videoElement.current.addEventListener('loadedmetadata', handleLoadedMetadata);
 
       return () => {
         if (videoElement.current) {
           videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
-          videoElement.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
         }
       };
     }, [ref]);
