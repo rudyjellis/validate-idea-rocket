@@ -22,6 +22,7 @@ interface VideoPreviewProps {
   onTapToResume?: () => void;
   onPlayback?: () => void;
   onStopPlayback?: () => void;
+  onDownload?: (format: 'webm' | 'mp4') => void;
 }
 
 const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
@@ -35,7 +36,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     onTapToStop, 
     onTapToResume,
     onPlayback,
-    onStopPlayback 
+    onStopPlayback,
+    onDownload
   }, ref) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -123,7 +125,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                     onStopRecording={() => {}}
                     onPauseRecording={() => {}}
                     onResumeRecording={() => {}}
-                    onDownload={() => {}}
+                    onDownload={onDownload}
                     onPlayback={() => {}}
                   />
                 )}
@@ -160,6 +162,20 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                   <StopCircle className="w-8 h-8" />
                 </button>
               </>
+            )}
+
+            {!isMobile && (
+              <RecordingControls
+                recordingState={recordingState}
+                onStartRecording={() => {}}
+                onStopRecording={onTapToStop!}
+                onPauseRecording={onTapToPause}
+                onResumeRecording={onTapToResume}
+                onDownload={onDownload!}
+                onPlayback={onPlayback!}
+                hasRecording={true}
+                isPlayingBack={isPlayingBack}
+              />
             )}
           </AspectRatio>
         </div>
