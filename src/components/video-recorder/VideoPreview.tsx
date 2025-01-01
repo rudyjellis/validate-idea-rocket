@@ -3,11 +3,10 @@ import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
 import RecordingTimer from "./components/RecordingTimer";
-import RecordingControls from "./components/RecordingControls";
+import RecordingControls from "./RecordingControls";
 import PlaybackOverlay from "./components/PlaybackOverlay";
 import RecordButton from "./components/RecordButton";
 import FullscreenButton from "./components/FullscreenButton";
-import ReplayButton from "./components/ReplayButton";
 import VideoElement from "./components/VideoElement";
 import TapToRecordIndicator from "./components/TapToRecordIndicator";
 import { Play, StopCircle } from "lucide-react";
@@ -116,8 +115,16 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
                 {recordingState === "recording" && (
                   <RecordingControls 
+                    recordingState={recordingState}
                     onTapToPause={onTapToPause} 
-                    onTapToStop={onTapToStop} 
+                    onTapToStop={onTapToStop}
+                    hasRecording={false}
+                    onStartRecording={() => {}}
+                    onStopRecording={() => {}}
+                    onPauseRecording={() => {}}
+                    onResumeRecording={() => {}}
+                    onDownload={() => {}}
+                    onPlayback={() => {}}
                   />
                 )}
 
@@ -143,16 +150,6 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
             )}
 
             {/* Common controls for both mobile and desktop */}
-            {recordingState === "idle" && !isPlayingBack && onPlayback && (
-              <button
-                onClick={onPlayback}
-                className="absolute bottom-8 left-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
-                aria-label="Play recording"
-              >
-                <Play className="w-8 h-8" />
-              </button>
-            )}
-
             {isPlayingBack && (
               <>
                 <PlaybackOverlay currentTime={currentTime} />
