@@ -103,30 +103,52 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               <RecordingTimer timeLeft={timeLeft} />
             )}
 
-            {isMobile && recordingState === "idle" && !isPlayingBack && (
-              <TapToRecordIndicator />
-            )}
-
-            {isMobile && recordingState === "idle" && !isPlayingBack && (
-              <RecordButton onClick={onTapToRecord!} />
-            )}
-
-            {recordingState === "recording" && (
-              <RecordingControls 
-                onTapToPause={onTapToPause} 
-                onTapToStop={onTapToStop} 
-              />
-            )}
-
-            {recordingState === "paused" && (
+            {/* Only show these controls on mobile */}
+            {isMobile && (
               <>
-                <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10">
-                  Tap to Resume
-                </div>
-                <div 
-                  className="absolute inset-0 bg-black/50 cursor-pointer"
-                  onClick={onTapToResume}
-                />
+                {recordingState === "idle" && !isPlayingBack && (
+                  <TapToRecordIndicator />
+                )}
+
+                {recordingState === "idle" && !isPlayingBack && (
+                  <RecordButton onClick={onTapToRecord!} />
+                )}
+
+                {recordingState === "recording" && (
+                  <RecordingControls 
+                    onTapToPause={onTapToPause} 
+                    onTapToStop={onTapToStop} 
+                  />
+                )}
+
+                {recordingState === "paused" && (
+                  <>
+                    <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10">
+                      Tap to Resume
+                    </div>
+                    <div 
+                      className="absolute inset-0 bg-black/50 cursor-pointer"
+                      onClick={onTapToResume}
+                    />
+                  </>
+                )}
+
+                {recordingState === "idle" && !isRecording && (
+                  <FullscreenButton 
+                    isFullscreen={isFullscreen} 
+                    onClick={toggleFullscreen} 
+                  />
+                )}
+
+                {recordingState === "idle" && !isPlayingBack && onPlayback && (
+                  <button
+                    onClick={onPlayback}
+                    className="absolute bottom-8 left-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
+                    aria-label="Play recording"
+                  >
+                    <Play className="w-8 h-8" />
+                  </button>
+                )}
               </>
             )}
 
@@ -140,23 +162,6 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
                   <StopCircle className="w-8 h-8" />
                 </button>
               </>
-            )}
-
-            {isMobile && recordingState === "idle" && !isRecording && (
-              <FullscreenButton 
-                isFullscreen={isFullscreen} 
-                onClick={toggleFullscreen} 
-              />
-            )}
-
-            {isMobile && recordingState === "idle" && !isPlayingBack && onPlayback && (
-              <button
-                onClick={onPlayback}
-                className="absolute bottom-8 left-8 bg-black/75 p-4 rounded-full text-white hover:bg-black/90 transition-colors z-20 shadow-lg active:scale-95 transform"
-                aria-label="Play recording"
-              >
-                <Play className="w-8 h-8" />
-              </button>
             )}
           </AspectRatio>
         </div>
