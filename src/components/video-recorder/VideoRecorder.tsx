@@ -7,8 +7,8 @@ const VideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderP
   const isMobile = useIsMobile();
 
   return (
-    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
-      <div className={`w-full ${isMobile ? 'flex-1 relative' : 'max-w-md mx-auto'}`}>
+    <div className={`flex flex-col ${isMobile ? 'h-[100dvh]' : ''}`}>
+      <div className={`w-full ${isMobile ? 'flex-1 relative' : 'max-w-4xl mx-auto'}`}>
         {isMobile ? (
           <MobileVideoRecorder
             maxDuration={maxDuration}

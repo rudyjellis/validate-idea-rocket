@@ -5,9 +5,11 @@ import VideoPreview from "../VideoPreview";
 import RecordingControls from "../RecordingControls";
 import { useVideoRecording } from "../hooks/useVideoRecording";
 import { useCameraDevices } from "../hooks/useCameraDevices";
+import { useToast } from "@/components/ui/use-toast";
 
 const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
+  const { toast } = useToast();
   
   const {
     videoRef,
@@ -20,7 +22,6 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     resumeRecording,
     initializeStream,
     downloadVideo,
-    resetRecording,
   } = useVideoRecording();
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
@@ -35,14 +36,24 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
           await initializeStream(firstCamera);
         } else {
           console.log("No cameras available");
+          toast({
+            title: "No cameras found",
+            description: "Please connect a camera to use this feature.",
+            variant: "destructive",
+          });
         }
       } catch (error) {
         console.error("Error initializing camera:", error);
+        toast({
+          title: "Camera Error",
+          description: "Failed to initialize camera. Please try again.",
+          variant: "destructive",
+        });
       }
     };
 
     initCamera();
-  }, [cameras]);
+  }, [cameras, setSelectedCamera, initializeStream, toast]);
 
   const handleCameraChange = async (deviceId: string) => {
     console.log("Camera changed to:", deviceId);
@@ -58,6 +69,11 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
     console.log("Starting recording with camera:", selectedCamera);
     if (!selectedCamera) {
       console.error("No camera selected");
+      toast({
+        title: "No Camera Selected",
+        description: "Please select a camera before recording.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -87,12 +103,12 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
   };
 
   const handleDownload = (format: "webm" | "mp4") => {
-    console.log("Initiating download on desktop with format:", format);
+    console.log("Initiating download with format:", format);
     downloadVideo(recordedChunks, format);
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-4xl mx-auto">
       <CameraSelector
         cameras={cameras}
         selectedCamera={selectedCamera}
@@ -113,7 +129,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
         />
       </div>
 
-      <div>
+      <div className="mt-4">
         <RecordingControls
           recordingState={recordingState}
           onStartRecording={handleStartRecording}
@@ -122,7 +138,6 @@ const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRe
           onResumeRecording={resumeRecording}
           onDownload={handleDownload}
           onPlayback={handlePlayback}
-          onStopPlayback={handleStopPlayback}
           hasRecording={recordedChunks.length > 0}
           isPlayingBack={isPlayingBack}
         />
