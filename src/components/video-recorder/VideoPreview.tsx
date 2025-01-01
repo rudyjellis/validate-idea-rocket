@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useState, memo } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -161,7 +161,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
     return (
       <div className={`relative bg-black rounded-lg overflow-hidden ${isMobile ? 'w-full h-full absolute inset-0' : 'w-full'}`}>
-        <div className="video-container w-full h-full">
+        <div className="video-container w-full h-full transform-gpu">
           <AspectRatio ratio={isMobile ? 9 / 16 : 16 / 9} className="h-full">
             <VideoElement ref={ref} isPlayingBack={isPlayingBack} />
             {(recordingState === "recording" || recordingState === "paused") && (
@@ -177,4 +177,4 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
 VideoPreview.displayName = "VideoPreview";
 
-export default VideoPreview;
+export default memo(VideoPreview);

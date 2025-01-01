@@ -8,10 +8,12 @@ const VideoElement = forwardRef<HTMLVideoElement, VideoElementProps>(({ isPlayin
   console.log("Rendering VideoElement, isPlayingBack:", isPlayingBack);
   
   useEffect(() => {
-    // Prevent video element from being recreated during recording
     const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
     if (videoElement?.current) {
-      videoElement.current.style.transform = 'translateZ(0)'; // Force hardware acceleration
+      // Apply hardware acceleration and prevent layout shifts
+      videoElement.current.style.transform = 'translate3d(0,0,0)';
+      videoElement.current.style.backfaceVisibility = 'hidden';
+      videoElement.current.style.perspective = '1000px';
     }
   }, [ref]);
 
@@ -22,11 +24,16 @@ const VideoElement = forwardRef<HTMLVideoElement, VideoElementProps>(({ isPlayin
         autoPlay
         playsInline
         muted={!isPlayingBack}
-        className="absolute inset-0 w-full h-full object-cover will-change-transform"
+        className="absolute inset-0 w-full h-full object-cover transform-gpu"
         webkit-playsinline="true"
         x-webkit-airplay="allow"
         preload="metadata"
-        style={{ backfaceVisibility: 'hidden' }} // Reduce flickering
+        style={{
+          WebkitTransform: 'translate3d(0,0,0)',
+          WebkitBackfaceVisibility: 'hidden',
+          WebkitPerspective: '1000',
+          WebkitTransformStyle: 'preserve-3d'
+        }}
       />
     </div>
   );
