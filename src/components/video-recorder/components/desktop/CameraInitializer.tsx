@@ -5,7 +5,7 @@ import type { MediaDeviceInfo } from "../../types";
 interface CameraInitializerProps {
   cameras: MediaDeviceInfo[];
   setSelectedCamera: (deviceId: string) => void;
-  initializeStream: (deviceId: string) => Promise<void>;
+  initializeStream: (deviceId: string) => Promise<MediaStream>;
   setIsInitializing: (value: boolean) => void;
   videoRef: React.RefObject<HTMLVideoElement>;
 }
