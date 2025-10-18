@@ -53,6 +53,10 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       }
 
       const handleTimeUpdate = () => {
+        if (!videoElement.current) {
+          console.log("[VideoPreview] Video element null in handleTimeUpdate");
+          return;
+        }
         const newTime = videoElement.current.currentTime;
         console.log("[VideoPreview] Time updated:", newTime);
         setCurrentTime(newTime);
