@@ -1,10 +1,8 @@
-import { useRef, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useRef, useEffect, useCallback } from 'react';
 
 export const useMediaStream = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     return () => {
@@ -14,7 +12,7 @@ export const useMediaStream = () => {
     };
   }, []);
 
-  const initializeStream = async (selectedCamera: string) => {
+  const initializeStream = useCallback(async (selectedCamera: string) => {
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -23,7 +21,7 @@ export const useMediaStream = () => {
       console.log("Initializing stream with iOS-optimized constraints");
       const constraints = {
         video: {
-          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
+          deviceId: selectedCamera ? { ideal: selectedCamera } : undefined,
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -48,14 +46,9 @@ export const useMediaStream = () => {
       return stream;
     } catch (error) {
       console.error("Error initializing stream:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not access camera or microphone",
-      });
       throw error;
     }
-  };
+  }, []);
 
   return {
     streamRef,

@@ -67,7 +67,7 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     };
 
     initCamera();
-  }, [cameras, setSelectedCamera, initializeStream, toast]);
+  }, [cameras.length, setSelectedCamera, initializeStream, toast]);
 
   const handleStartRecording = async () => {
     console.log("Starting mobile recording with camera:", selectedCamera);
