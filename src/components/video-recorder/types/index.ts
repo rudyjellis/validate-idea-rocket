@@ -11,7 +11,6 @@ export type VideoFormat = "webm" | "mp4";
 
 export interface VideoRecorderProps {
   maxDuration?: number;
-  onRecordingComplete?: (blob: Blob) => void;
 }
 
 export interface CameraSelectorProps {

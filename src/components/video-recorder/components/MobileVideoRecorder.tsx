@@ -1,61 +1,53 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import type { VideoRecorderProps } from "../types";
 import VideoPreview from "../VideoPreview";
-import { useVideoRecording } from "../hooks/useVideoRecording";
-import { useCameraDevices } from "../hooks/useCameraDevices";
+import { useRecorderLogic } from "../hooks/useRecorderLogic";
 import { useToast } from "@/components/ui/use-toast";
 import MobileRecordingControls from "./MobileRecordingControls";
+import { createVideoRecorderLogger } from "@/utils/logger";
 
-const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
-  const [isPlayingBack, setIsPlayingBack] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const { toast } = useToast();
+const log = createVideoRecorderLogger('MobileVideoRecorder');
 
+const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
   const {
+    isPlayingBack,
+    isInitializing,
+    setIsInitializing,
     videoRef,
     recordingState,
-    recordedChunks,
     timeLeft,
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    resumeRecording,
+    cameras,
+    selectedCamera,
+    setSelectedCamera,
     initializeStream,
-    downloadVideo,
-  } = useVideoRecording(maxDuration);
-
-  const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
+    pauseRecording,
+    stopRecording,
+    handleDownload,
+    toast,
+  } = useRecorderLogic({ maxDuration });
 
   useEffect(() => {
     const initCamera = async () => {
+      if (!selectedCamera || cameras.length === 0) return;
+      
       try {
         setIsInitializing(true);
-        console.log("Mobile: Attempting to initialize camera");
+        log.log("Mobile: Initializing camera:", selectedCamera);
         
+        // Prefer front camera on mobile if available
         const frontCamera = cameras.find(camera => 
           camera.label.toLowerCase().includes('front')
         );
-
-        if (frontCamera) {
-          console.log("Mobile: Setting front camera");
-          setSelectedCamera(frontCamera.deviceId);
-          await initializeStream(frontCamera.deviceId);
-          console.log("Mobile: Front camera initialized successfully");
-        } else if (cameras.length > 0) {
-          console.log("Mobile: No front camera found, using first available camera");
-          setSelectedCamera(cameras[0].deviceId);
-          await initializeStream(cameras[0].deviceId);
-          console.log("Mobile: Camera initialized successfully");
-        } else {
-          console.log("No cameras available");
-          toast({
-            title: "Camera Access Required",
-            description: "Please allow camera access to use this feature. You might need to check your browser settings.",
-            variant: "destructive",
-          });
+        const cameraToUse = frontCamera || cameras.find(c => c.deviceId === selectedCamera);
+        
+        if (cameraToUse && cameraToUse.deviceId !== selectedCamera) {
+          setSelectedCamera(cameraToUse.deviceId);
         }
+        
+        await initializeStream(cameraToUse?.deviceId || selectedCamera);
+        log.log("Mobile: Camera initialized successfully");
       } catch (error) {
-        console.error("Error initializing camera:", error);
+        log.error("Error initializing camera:", error);
         toast({
           title: "Camera Error",
           description: "Unable to access camera. Please check permissions and try again.",
@@ -67,28 +59,7 @@ const MobileVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRec
     };
 
     initCamera();
-  }, [cameras.length, setSelectedCamera, initializeStream, toast]);
-
-  const handleStartRecording = async () => {
-    console.log("Starting mobile recording with camera:", selectedCamera);
-    if (!selectedCamera) {
-      console.error("No camera selected");
-      toast({
-        title: "Camera Error",
-        description: "Please allow camera access to start recording.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsPlayingBack(false);
-    await startRecording(selectedCamera);
-  };
-
-  const handleDownload = (format: "webm" | "mp4") => {
-    console.log("Initiating mobile download with format:", format);
-    downloadVideo(recordedChunks, format);
-  };
+  }, [selectedCamera, cameras, setSelectedCamera, initializeStream, toast]);
 
   return (
     <div className="relative w-full h-full bg-black">

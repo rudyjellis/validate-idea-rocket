@@ -1,102 +1,39 @@
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
 import CameraSelector from "../CameraSelector";
 import RecordingControls from "../RecordingControls";
-import { useVideoRecording } from "../hooks/useVideoRecording";
-import { useCameraDevices } from "../hooks/useCameraDevices";
+import { useRecorderLogic } from "../hooks/useRecorderLogic";
 import CameraInitializer from "./desktop/CameraInitializer";
 import VideoPreviewContainer from "./desktop/VideoPreviewContainer";
 import type { VideoRecorderProps } from "../types";
 
-const DesktopVideoRecorder = ({ maxDuration = 30, onRecordingComplete }: VideoRecorderProps) => {
-  const [isPlayingBack, setIsPlayingBack] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const { toast } = useToast();
-  
+const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
   const {
+    isPlayingBack,
+    isInitializing,
+    setIsInitializing,
     videoRef,
     recordingState,
     recordedChunks,
     timeLeft,
-    startRecording,
-    stopRecording,
+    cameras,
+    selectedCamera,
+    setSelectedCamera,
+    handleStartRecording,
+    handleDownload,
+    handlePlayback,
+    handleStopPlayback,
+    handleCameraChange,
     pauseRecording,
     resumeRecording,
+    stopRecording,
     initializeStream,
-    downloadVideo,
-  } = useVideoRecording(maxDuration);
+  } = useRecorderLogic({ maxDuration });
 
-  const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
-
-  const handleCameraChange = async (deviceId: string) => {
-    try {
-      console.log("[DesktopVideoRecorder] Changing camera to:", deviceId);
-      setIsInitializing(true);
-      
-      if (recordingState !== "idle") {
-        stopRecording();
-      }
-      
-      setSelectedCamera(deviceId);
-      await initializeStream(deviceId);
-    } catch (error) {
-      console.error("[DesktopVideoRecorder] Camera switch error:", error);
-      toast({
-        title: "Camera Switch Error",
-        description: "Failed to switch cameras. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsInitializing(false);
-    }
-  };
-
-  const handleStartRecording = async () => {
-    console.log("Starting recording with camera:", selectedCamera);
-    if (!selectedCamera) {
-      console.error("No camera selected");
-      toast({
-        title: "No Camera Selected",
-        description: "Please select a camera before recording.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsPlayingBack(false);
-    await startRecording(selectedCamera);
-  };
-
-  const handlePlayback = () => {
-    console.log("Starting playback");
-    setIsPlayingBack(true);
-    
-    if (videoRef.current) {
-      videoRef.current.onended = () => {
-        console.log("Playback ended");
-        setIsPlayingBack(false);
-      };
-    }
-  };
-
-  const handleStopPlayback = () => {
-    console.log("Stopping playback");
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-    setIsPlayingBack(false);
-  };
-
-  const handleDownload = (format: "webm" | "mp4") => {
-    console.log("Initiating download with format:", format);
-    downloadVideo(recordedChunks, format);
-  };
 
   return (
     <div className="w-full max-w-4xl mx-auto">
       <CameraInitializer
         cameras={cameras}
+        selectedCamera={selectedCamera}
         setSelectedCamera={setSelectedCamera}
         initializeStream={initializeStream}
         setIsInitializing={setIsInitializing}

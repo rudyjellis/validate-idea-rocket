@@ -45,7 +45,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     // Time tracking effect with cleanup
     useEffect(() => {
       console.log("[VideoPreview] Setting up video element time tracking");
-      const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
+      const videoElement = ref as React.RefObject<HTMLVideoElement>;
       
       if (!videoElement?.current) {
         console.log("[VideoPreview] No video element found");

@@ -19,6 +19,7 @@ export const useCameraDevices = () => {
         setCameras(videoDevices);
         console.log("Available cameras:", videoDevices);
 
+        // Only set initial camera selection, don't initialize stream here
         const lastSelectedCamera = localStorage.getItem(LAST_CAMERA_KEY);
         const isLastCameraAvailable = videoDevices.some(
           (device) => device.deviceId === lastSelectedCamera
@@ -42,7 +43,7 @@ export const useCameraDevices = () => {
     };
 
     getCameras();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (selectedCamera) {

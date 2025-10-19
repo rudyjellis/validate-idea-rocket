@@ -4,6 +4,7 @@ import type { MediaDeviceInfo } from "../../types";
 
 interface CameraInitializerProps {
   cameras: MediaDeviceInfo[];
+  selectedCamera: string;
   setSelectedCamera: (deviceId: string) => void;
   initializeStream: (deviceId: string) => Promise<MediaStream>;
   setIsInitializing: (value: boolean) => void;
@@ -12,6 +13,7 @@ interface CameraInitializerProps {
 
 const CameraInitializer = ({
   cameras,
+  selectedCamera,
   setSelectedCamera,
   initializeStream,
   setIsInitializing,
@@ -38,13 +40,13 @@ const CameraInitializer = ({
           }
         }, 10000);
 
+        // Only initialize if we have a selected camera and no existing stream
         if (cameras.length > 0 && !videoRef.current?.srcObject) {
-          console.log("[CameraInitializer] Found cameras, selecting first camera");
-          const firstCamera = cameras[0].deviceId;
-          setSelectedCamera(firstCamera);
+          const cameraToUse = cameras.find(c => c.deviceId === selectedCamera) || cameras[0];
+          console.log("[CameraInitializer] Initializing with camera:", cameraToUse.deviceId);
           
           try {
-            await initializeStream(firstCamera);
+            await initializeStream(cameraToUse.deviceId);
             console.log("[CameraInitializer] Camera initialized successfully");
           } catch (error) {
             // Fallback: try without specific deviceId
@@ -87,14 +89,17 @@ const CameraInitializer = ({
       }
     };
 
-    initCamera();
+    // Only initialize when we have both cameras and a selected camera
+    if (cameras.length > 0 && selectedCamera) {
+      initCamera();
+    }
 
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
       console.log("[CameraInitializer] Cleaning up camera initialization");
     };
-  }, [cameras.length, initializeStream, setIsInitializing, setSelectedCamera, toast, videoRef]);
+  }, [cameras, selectedCamera, initializeStream, setIsInitializing, toast, videoRef]);
 
   return null;
 };

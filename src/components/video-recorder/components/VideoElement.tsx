@@ -8,7 +8,7 @@ const VideoElement = forwardRef<HTMLVideoElement, VideoElementProps>(({ isPlayin
   console.log("Rendering VideoElement, isPlayingBack:", isPlayingBack);
   
   useEffect(() => {
-    const videoElement = ref as React.MutableRefObject<HTMLVideoElement>;
+    const videoElement = ref as React.RefObject<HTMLVideoElement>;
     if (videoElement?.current) {
       // Apply hardware acceleration and prevent layout shifts
       videoElement.current.style.transform = 'translate3d(0,0,0)';

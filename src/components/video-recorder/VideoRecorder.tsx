@@ -7,11 +7,9 @@ import DesktopVideoRecorder from "./components/DesktopVideoRecorder";
 /**
  * VideoRecorder component that handles both mobile and desktop video recording experiences
  * @param maxDuration Maximum duration of the recording in seconds (default: 30)
- * @param onRecordingComplete Callback function called when recording is completed
  */
 const VideoRecorder = ({ 
-  maxDuration = 30, 
-  onRecordingComplete 
+  maxDuration = 30
 }: VideoRecorderProps) => {
   // Custom hooks
   const isMobile = useIsMobile();
@@ -41,7 +39,6 @@ const VideoRecorder = ({
       >
         <RecorderComponent
           maxDuration={maxDuration}
-          onRecordingComplete={onRecordingComplete}
         />
       </div>
     </div>

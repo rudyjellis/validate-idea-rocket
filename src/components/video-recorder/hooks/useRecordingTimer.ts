@@ -1,53 +1,67 @@
 import { useRef, useState, useEffect } from 'react';
+import { createVideoRecorderLogger } from '@/utils/logger';
 
-export const useRecordingTimer = (maxDuration: number = 30) => {
+const log = createVideoRecorderLogger('useRecordingTimer');
+
+export const useRecordingTimer = (maxDuration: number = 30, onTimeExpired?: () => void) => {
   const [timeLeft, setTimeLeft] = useState(maxDuration);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, []);
 
   const startTimer = () => {
-    console.log("Starting timer with maxDuration:", maxDuration);
+    log.log("Starting timer with maxDuration:", maxDuration);
     startTimeRef.current = Date.now();
-    timerRef.current = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - (startTimeRef.current || Date.now())) / 1000);
+    
+    const updateTimer = () => {
+      const elapsed = (Date.now() - (startTimeRef.current || Date.now())) / 1000;
       const remaining = Math.max(0, maxDuration - elapsed);
-      setTimeLeft(remaining);
+      setTimeLeft(Math.ceil(remaining));
 
       if (remaining <= 0) {
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
         }
+        // Call the callback when time expires
+        if (onTimeExpired) {
+          onTimeExpired();
+        }
+      } else {
+        // Continue the animation loop
+        animationFrameRef.current = requestAnimationFrame(updateTimer);
       }
-    }, 1000);
+    };
+    
+    animationFrameRef.current = requestAnimationFrame(updateTimer);
   };
 
   const stopTimer = () => {
-    console.log("Stopping timer");
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+    log.log("Stopping timer");
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
     startTimeRef.current = null;
   };
 
   const pauseTimer = () => {
-    console.log("Pausing timer");
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+    log.log("Pausing timer");
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
   };
 
   const resetTimer = () => {
-    console.log("Resetting timer");
+    log.log("Resetting timer");
     stopTimer();
     setTimeLeft(maxDuration);
   };
