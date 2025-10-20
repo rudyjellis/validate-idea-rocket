@@ -6,7 +6,6 @@ import RecordingTimer from "./components/RecordingTimer";
 import VideoElement, { VideoElementRef } from "./components/VideoElement";
 import MobileControls from "./components/video-preview/MobileControls";
 import DesktopControls from "./components/video-preview/DesktopControls";
-import SimpleRecordingIndicator from "./components/SimpleRecordingIndicator";
 import CountdownOverlay from "./components/CountdownOverlay";
 import AudioVisualizer from "./components/AudioVisualizer";
 import { createVideoRecorderLogger } from "@/utils/logger";
@@ -135,17 +134,11 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
               isMobile={isMobile}
             />
             
-            {/* Recording Timer - Elapsed time display */}
+            {/* Recording Timer with Status Badge */}
             <RecordingTimer
               isRecording={recordingState === 'recording' || recordingState === 'paused'}
               isPaused={recordingState === 'paused'}
-            />
-            
-            {/* Simple Recording Indicator */}
-            <SimpleRecordingIndicator
               recordingState={recordingState}
-              timeLeft={timeLeft}
-              isMobile={isMobile}
             />
 
             {isMobile ? (

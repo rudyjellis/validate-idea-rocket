@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
+import type { RecordingState } from '../types';
 
 interface RecordingTimerProps {
   isRecording: boolean;
   isPaused: boolean;
+  recordingState: RecordingState;
 }
 
-const RecordingTimer = ({ isRecording, isPaused }: RecordingTimerProps) => {
+const RecordingTimer = ({ isRecording, isPaused, recordingState }: RecordingTimerProps) => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const pausedTimeRef = useRef<number>(0);
@@ -62,7 +64,34 @@ const RecordingTimer = ({ isRecording, isPaused }: RecordingTimerProps) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!isRecording) {
+  // Get status configuration
+  const getStatusConfig = () => {
+    switch (recordingState) {
+      case 'recording':
+        return {
+          bgColor: 'bg-red-500',
+          textColor: 'text-white',
+          icon: '🔴',
+          text: 'Recording',
+          pulse: true,
+        };
+      case 'paused':
+        return {
+          bgColor: 'bg-yellow-500',
+          textColor: 'text-black',
+          icon: '⏸️',
+          text: 'Paused',
+          pulse: false,
+        };
+      case 'idle':
+      default:
+        return null;
+    }
+  };
+
+  const config = getStatusConfig();
+
+  if (!config) {
     return null;
   }
 
@@ -73,10 +102,25 @@ const RecordingTimer = ({ isRecording, isPaused }: RecordingTimerProps) => {
         textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
       }}
     >
-      <div className="px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm">
-        <span className="text-white font-mono text-sm font-medium">
-          {formatTime(elapsedSeconds)}
-        </span>
+      <div className="flex flex-col items-end gap-2">
+        {/* Status Badge */}
+        <div
+          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${config.bgColor} ${config.textColor} ${
+            config.pulse ? 'animate-pulse' : ''
+          }`}
+        >
+          <span className="text-lg">{config.icon}</span>
+          <span className="font-medium">{config.text}</span>
+        </div>
+
+        {/* Timer */}
+        {isRecording && (
+          <div className="px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm">
+            <span className="text-white font-mono text-sm font-medium">
+              {formatTime(elapsedSeconds)}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
