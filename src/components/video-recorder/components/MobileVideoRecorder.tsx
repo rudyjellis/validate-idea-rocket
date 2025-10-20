@@ -4,6 +4,7 @@ import VideoPreview from "../VideoPreview";
 import { useRecorderLogic } from "../hooks/useRecorderLogic";
 import { useToast } from "@/components/ui/use-toast";
 import MobileRecordingControls from "./MobileRecordingControls";
+import MobileLoadingOverlay from "./MobileLoadingOverlay";
 import { createVideoRecorderLogger } from "@/utils/logger";
 
 const log = createVideoRecorderLogger('MobileVideoRecorder');
@@ -63,11 +64,11 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
 
   return (
     <div className="relative w-full h-full bg-black">
-      {isInitializing && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
-          <div className="text-white">Initializing camera...</div>
-        </div>
-      )}
+      <MobileLoadingOverlay 
+        isInitializing={isInitializing}
+        message="Setting up camera..."
+      />
+      
       <div className="absolute inset-0">
         <VideoPreview
           ref={videoRef}

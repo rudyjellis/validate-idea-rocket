@@ -3,6 +3,7 @@ import type { VideoRecorderProps } from "./types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileVideoRecorder from "./components/MobileVideoRecorder";
 import DesktopVideoRecorder from "./components/DesktopVideoRecorder";
+import VideoRecorderErrorBoundary from "./ErrorBoundary";
 
 /**
  * VideoRecorder component that handles both mobile and desktop video recording experiences
@@ -20,28 +21,30 @@ const VideoRecorder = ({
   console.log(`[VideoRecorder] Rendering ${isMobile ? 'mobile' : 'desktop'} recorder`);
 
   return (
-    <div 
-      className={`
-        flex 
-        flex-col 
-        ${isMobile ? 'h-[100dvh]' : ''} 
-        transform-gpu
-      `}
-    >
+    <VideoRecorderErrorBoundary>
       <div 
         className={`
-          w-full 
-          ${isMobile ? 'flex-1 relative' : 'max-w-4xl mx-auto'}
-          transition-all 
-          duration-300 
-          ease-in-out
+          flex 
+          flex-col 
+          ${isMobile ? 'h-[100dvh]' : ''} 
+          transform-gpu
         `}
       >
-        <RecorderComponent
-          maxDuration={maxDuration}
-        />
+        <div 
+          className={`
+            w-full 
+            ${isMobile ? 'flex-1 relative' : 'max-w-4xl mx-auto'}
+            transition-all 
+            duration-300 
+            ease-in-out
+          `}
+        >
+          <RecorderComponent
+            maxDuration={maxDuration}
+          />
+        </div>
       </div>
-    </div>
+    </VideoRecorderErrorBoundary>
   );
 };
 

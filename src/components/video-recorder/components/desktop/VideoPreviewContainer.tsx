@@ -27,7 +27,10 @@ const VideoPreviewContainer = ({
 }: VideoPreviewContainerProps) => {
   return (
     <div className="mt-4 relative aspect-video bg-black rounded-lg overflow-hidden">
-      <LoadingOverlay isInitializing={isInitializing} />
+      <LoadingOverlay 
+        isInitializing={isInitializing} 
+        message="Setting up camera..."
+      />
       <VideoPreview
         ref={videoRef}
         isRecording={recordingState === "recording"}

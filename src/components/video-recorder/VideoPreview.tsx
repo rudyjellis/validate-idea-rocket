@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState, memo, useCallback } from "react";
+import { forwardRef, useEffect, useState, memo, useCallback, useMemo } from "react";
 import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -6,6 +6,11 @@ import RecordingTimer from "./components/RecordingTimer";
 import VideoElement from "./components/VideoElement";
 import MobileControls from "./components/video-preview/MobileControls";
 import DesktopControls from "./components/video-preview/DesktopControls";
+import RecordingStatusIndicator from "./components/RecordingStatusIndicator";
+import RecordingPulseEffect from "./components/RecordingPulseEffect";
+import { createVideoRecorderLogger } from "@/utils/logger";
+
+const log = createVideoRecorderLogger('VideoPreview');
 
 interface VideoPreviewProps {
   isRecording: boolean;
@@ -44,21 +49,20 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
     // Time tracking effect with cleanup
     useEffect(() => {
-      console.log("[VideoPreview] Setting up video element time tracking");
+      log.log("Setting up video element time tracking");
       const videoElement = ref as React.RefObject<HTMLVideoElement>;
       
       if (!videoElement?.current) {
-        console.log("[VideoPreview] No video element found");
+        log.log("No video element found");
         return;
       }
 
       const handleTimeUpdate = () => {
         if (!videoElement.current) {
-          console.log("[VideoPreview] Video element null in handleTimeUpdate");
+          log.log("Video element null in handleTimeUpdate");
           return;
         }
         const newTime = videoElement.current.currentTime;
-        console.log("[VideoPreview] Time updated:", newTime);
         setCurrentTime(newTime);
       };
 
@@ -66,7 +70,7 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
       // Cleanup function
       return () => {
-        console.log("[VideoPreview] Cleaning up time tracking");
+        log.log("Cleaning up time tracking");
         if (videoElement.current) {
           videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
         }
@@ -75,39 +79,57 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
 
     // Memoized fullscreen handler
     const toggleFullscreen = useCallback(async () => {
-      console.log("[VideoPreview] Toggling fullscreen mode");
+      log.log("Toggling fullscreen mode");
       const videoContainer = document.querySelector('.video-container') as HTMLElement;
 
       try {
         if (!document.fullscreenElement) {
           await videoContainer.requestFullscreen();
           setIsFullscreen(true);
-          console.log("[VideoPreview] Entered fullscreen mode");
+          log.log("Entered fullscreen mode");
         } else {
           await document.exitFullscreen();
           setIsFullscreen(false);
-          console.log("[VideoPreview] Exited fullscreen mode");
+          log.log("Exited fullscreen mode");
         }
       } catch (err) {
-        console.error("[VideoPreview] Fullscreen error:", err);
+        log.error("Fullscreen error:", err);
       }
     }, []);
 
     // Memoized container classes for better performance
-    const containerClasses = `relative bg-black rounded-lg overflow-hidden transform-gpu ${
-      isMobile ? 'w-full h-full absolute inset-0' : 'w-full'
-    }`;
+    const containerClasses = useMemo(() => 
+      `relative bg-black rounded-lg overflow-hidden transform-gpu ${
+        isMobile ? 'w-full h-full absolute inset-0' : 'w-full'
+      }`,
+      [isMobile]
+    );
+
+    // Memoized aspect ratio
+    const aspectRatio = useMemo(() => isMobile ? 9 / 16 : 16 / 9, [isMobile]);
 
     return (
       <div className={containerClasses}>
         <div className="video-container w-full h-full transform-gpu">
           <AspectRatio 
-            ratio={isMobile ? 9 / 16 : 16 / 9} 
+            ratio={aspectRatio} 
             className="h-full"
           >
             <VideoElement 
               ref={ref} 
               isPlayingBack={isPlayingBack} 
+            />
+            
+            {/* Enhanced Recording Indicators */}
+            <RecordingStatusIndicator
+              recordingState={recordingState}
+              timeLeft={timeLeft}
+              isMobile={isMobile}
+            />
+            
+            <RecordingPulseEffect
+              recordingState={recordingState}
+              isMobile={isMobile}
             />
             
             {(recordingState === "recording" || recordingState === "paused") && (
