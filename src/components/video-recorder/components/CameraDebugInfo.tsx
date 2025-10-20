@@ -1,11 +1,12 @@
 import React from 'react';
 import type { MediaDeviceInfo } from '../types';
+import type { VideoElementRef } from './VideoElement';
 
 interface CameraDebugInfoProps {
   cameras: MediaDeviceInfo[];
   selectedCamera: string;
   isInitializing: boolean;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<VideoElementRef>;
 }
 
 const CameraDebugInfo = ({ cameras, selectedCamera, isInitializing, videoRef }: CameraDebugInfoProps) => {
@@ -20,7 +21,6 @@ const CameraDebugInfo = ({ cameras, selectedCamera, isInitializing, videoRef }: 
         <div>Selected: {selectedCamera || 'None'}</div>
         <div>Initializing: {isInitializing ? 'Yes' : 'No'}</div>
         <div>Has video element: {videoRef.current ? 'Yes' : 'No'}</div>
-        <div>Has stream: {videoRef.current?.srcObject ? 'Yes' : 'No'}</div>
         {cameras.length > 0 && (
           <div className="mt-2">
             <div className="font-semibold">Available cameras:</div>

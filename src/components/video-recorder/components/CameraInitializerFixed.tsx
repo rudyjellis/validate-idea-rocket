@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import type { MediaDeviceInfo } from "../types";
+import type { VideoElementRef } from "./VideoElement";
 
 interface CameraInitializerFixedProps {
   cameras: MediaDeviceInfo[];
@@ -8,7 +9,7 @@ interface CameraInitializerFixedProps {
   setSelectedCamera: (deviceId: string) => void;
   initializeStream: (deviceId: string) => Promise<MediaStream>;
   setIsInitializing: (value: boolean) => void;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<VideoElementRef>;
 }
 
 const CameraInitializerFixed = ({
@@ -61,14 +62,6 @@ const CameraInitializerFixed = ({
         }
 
         setInitStep("Cameras detected, requesting access...");
-
-        // Check if we already have a stream
-        if (videoRef.current?.srcObject) {
-          console.log("[CameraInitializerFixed] Stream already exists");
-          setInitStep("Camera already active");
-          setIsInitializing(false);
-          return;
-        }
 
         // Try to initialize with selected camera or first available
         const cameraToUse = cameras.find(c => c.deviceId === selectedCamera) || cameras[0];

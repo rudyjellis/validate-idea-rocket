@@ -13,11 +13,20 @@ export const useCameraDevices = () => {
       try {
         console.log("Fetching available cameras");
         const devices = await navigator.mediaDevices.enumerateDevices();
+        console.log("All devices found:", devices);
+        
         const videoDevices = devices.filter(
           (device) => device.kind === "videoinput"
         );
-        setCameras(videoDevices);
-        console.log("Available cameras:", videoDevices);
+        
+        // Debug: Check for empty camera objects
+        const validCameras = videoDevices.filter(device => device.deviceId && device.deviceId !== '');
+        if (validCameras.length !== videoDevices.length) {
+          console.warn("Found cameras with empty deviceId:", videoDevices.filter(d => !d.deviceId || d.deviceId === ''));
+        }
+        
+        setCameras(validCameras);
+        console.log("Available cameras:", validCameras);
 
         // Only set initial camera selection, don't initialize stream here
         const lastSelectedCamera = localStorage.getItem(LAST_CAMERA_KEY);

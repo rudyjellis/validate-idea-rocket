@@ -58,10 +58,10 @@ const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlaying
       videoElement.style.perspective = '1000px';
       
       // Apply webkit optimizations
-      videoElement.style.WebkitTransform = 'translate3d(0,0,0)';
-      videoElement.style.WebkitBackfaceVisibility = 'hidden';
-      videoElement.style.WebkitPerspective = '1000';
-      videoElement.style.WebkitTransformStyle = 'preserve-3d';
+      videoElement.style.webkitTransform = 'translate3d(0,0,0)';
+      videoElement.style.webkitBackfaceVisibility = 'hidden';
+      videoElement.style.webkitPerspective = '1000';
+      videoElement.style.webkitTransformStyle = 'preserve-3d';
     }
   }, []);
 

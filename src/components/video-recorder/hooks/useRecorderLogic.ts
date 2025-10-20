@@ -49,15 +49,16 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     downloadVideo(format);
   }, [downloadVideo]);
 
-  const handlePlayback = useCallback(() => {
+  const handlePlayback = useCallback(async () => {
     log.log("Starting playback");
     setIsPlayingBack(true);
     
     if (videoRef.current) {
-      videoRef.current.onended = () => {
-        log.log("Playback ended");
-        setIsPlayingBack(false);
-      };
+      try {
+        await videoRef.current.play();
+      } catch (error) {
+        log.error("Playback error:", error);
+      }
     }
   }, [videoRef]);
 
@@ -65,7 +66,6 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     log.log("Stopping playback");
     if (videoRef.current) {
       videoRef.current.pause();
-      videoRef.current.currentTime = 0;
     }
     setIsPlayingBack(false);
   }, [videoRef]);

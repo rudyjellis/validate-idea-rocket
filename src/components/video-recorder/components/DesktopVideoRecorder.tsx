@@ -5,6 +5,7 @@ import CameraInitializerFixed from "./CameraInitializerFixed";
 import VideoPreviewContainer from "./desktop/VideoPreviewContainer";
 import CameraDebugInfo from "./CameraDebugInfo";
 import type { VideoRecorderProps } from "../types";
+import type { VideoElementRef } from "./VideoElement";
 
 const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
   const {

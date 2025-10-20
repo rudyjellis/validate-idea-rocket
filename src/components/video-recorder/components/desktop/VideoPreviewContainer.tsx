@@ -1,9 +1,10 @@
 import VideoPreview from "../../VideoPreview";
 import LoadingOverlay from "./LoadingOverlay";
 import type { RecordingState } from "../../types";
+import type { VideoElementRef } from "../VideoElement";
 
 interface VideoPreviewContainerProps {
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<VideoElementRef>;
   isInitializing: boolean;
   recordingState: RecordingState;
   timeLeft: number;

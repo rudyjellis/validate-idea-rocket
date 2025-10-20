@@ -1,8 +1,10 @@
 import { useRef, useEffect, useCallback } from 'react';
+import type { VideoElementRef } from '../components/VideoElement';
 
 export const useMediaStream = () => {
   const streamRef = useRef<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<VideoElementRef>(null);
+  const internalVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     return () => {
@@ -35,18 +37,8 @@ export const useMediaStream = () => {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // Remove problematic setAttribute calls for now
-        // videoRef.current.setAttribute('playsinline', '');
-        // videoRef.current.setAttribute('webkit-playsinline', 'true');
-        
-        try {
-          await videoRef.current.play();
-        } catch (playError) {
-          console.warn("Video play failed:", playError);
-        }
-      }
+      // Note: The actual stream attachment is handled by VideoElement component
+      // through the useVideoElementState hook. This function just returns the stream.
 
       console.log("Stream initialized successfully with iOS optimizations");
       return stream;

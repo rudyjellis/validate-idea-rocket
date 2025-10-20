@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { VideoRecorderProps } from "../types";
 import VideoPreview from "../VideoPreview";
+import type { VideoElementRef } from "../components/VideoElement";
 import { useRecorderLogic } from "../hooks/useRecorderLogic";
 import { useToast } from "@/components/ui/use-toast";
 import MobileRecordingControls from "./MobileRecordingControls";

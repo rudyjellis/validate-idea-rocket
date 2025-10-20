@@ -3,7 +3,7 @@ import type { RecordingState } from "./types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useIsMobile } from "@/hooks/use-mobile";
 import RecordingTimer from "./components/RecordingTimer";
-import VideoElement from "./components/VideoElement";
+import VideoElement, { VideoElementRef } from "./components/VideoElement";
 import MobileControls from "./components/video-preview/MobileControls";
 import DesktopControls from "./components/video-preview/DesktopControls";
 import SimpleRecordingIndicator from "./components/SimpleRecordingIndicator";
@@ -25,7 +25,7 @@ interface VideoPreviewProps {
   onDownload?: (format: 'webm' | 'mp4') => void;
 }
 
-const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
+const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
   ({
     isRecording,
     timeLeft,
@@ -46,43 +46,21 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
     // Custom hooks
     const isMobile = useIsMobile();
 
-    // Time tracking effect with cleanup
+    // Time tracking effect - VideoElementRef doesn't expose addEventListener
+    // This is handled internally by the VideoElement component
     useEffect(() => {
-      log.log("Setting up video element time tracking");
-      const videoElement = ref as React.RefObject<HTMLVideoElement>;
+      // We can track time through getCurrentTime if needed for display
+      if (!ref || typeof ref === 'function') return;
       
-      if (!videoElement?.current || typeof videoElement.current.addEventListener !== 'function') {
-        log.log("No video element found or addEventListener not available");
-        return;
-      }
-
-      const handleTimeUpdate = () => {
-        if (!videoElement.current || typeof videoElement.current.addEventListener !== 'function') {
-          log.log("Video element null or invalid in handleTimeUpdate");
-          return;
+      const interval = setInterval(() => {
+        if (ref.current && isPlayingBack) {
+          const time = ref.current.getCurrentTime();
+          setCurrentTime(time);
         }
-        const newTime = videoElement.current.currentTime;
-        setCurrentTime(newTime);
-      };
+      }, 100);
 
-      try {
-        videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
-      } catch (error) {
-        log.error("Error adding timeupdate listener:", error);
-      }
-
-      // Cleanup function
-      return () => {
-        log.log("Cleaning up time tracking");
-        if (videoElement.current && typeof videoElement.current.removeEventListener === 'function') {
-          try {
-            videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
-          } catch (error) {
-            log.error("Error removing timeupdate listener:", error);
-          }
-        }
-      };
-    }, [ref]);
+      return () => clearInterval(interval);
+    }, [ref, isPlayingBack]);
 
     // Memoized fullscreen handler
     const toggleFullscreen = useCallback(async () => {
