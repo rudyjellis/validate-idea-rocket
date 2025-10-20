@@ -1,8 +1,9 @@
 import CameraSelector from "../CameraSelector";
 import RecordingControls from "../RecordingControls";
 import { useRecorderLogic } from "../hooks/useRecorderLogic";
-import CameraInitializer from "./desktop/CameraInitializer";
+import CameraInitializerFixed from "./CameraInitializerFixed";
 import VideoPreviewContainer from "./desktop/VideoPreviewContainer";
+import CameraDebugInfo from "./CameraDebugInfo";
 import type { VideoRecorderProps } from "../types";
 
 const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
@@ -31,7 +32,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <CameraInitializer
+      <CameraInitializerFixed
         cameras={cameras}
         selectedCamera={selectedCamera}
         setSelectedCamera={setSelectedCamera}
@@ -72,6 +73,13 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           isPlayingBack={isPlayingBack}
         />
       </div>
+      
+      <CameraDebugInfo
+        cameras={cameras}
+        selectedCamera={selectedCamera}
+        isInitializing={isInitializing}
+        videoRef={videoRef}
+      />
     </div>
   );
 };
