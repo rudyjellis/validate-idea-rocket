@@ -50,6 +50,7 @@ const VideoPreviewContainer = ({
         isPlayingBack={isPlayingBack}
         currentStream={currentStream}
         hasRecording={recordedChunks.length > 0}
+        recordedBlob={recordedChunks.length > 0 ? new Blob(recordedChunks, { type: recordedChunks[0]?.type || 'video/webm' }) : null}
         onPlayback={recordedChunks.length > 0 ? onPlayback : undefined}
         onStopPlayback={onStopPlayback}
         onDownload={onDownload}

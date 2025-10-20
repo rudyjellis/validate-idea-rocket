@@ -7,6 +7,7 @@ interface VideoElementProps {
   isPlayingBack?: boolean;
   currentMode?: 'stream' | 'playback' | 'idle';
   stream?: MediaStream | null;
+  recordedBlob?: Blob | null;
 }
 
 export interface VideoElementRef {
@@ -16,10 +17,12 @@ export interface VideoElementRef {
   getCurrentTime: () => number;
   getDuration: () => number;
   getVideoElement: () => HTMLVideoElement | null;
+  setVideoSource: (blob: Blob) => void;
 }
 
-const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlayingBack, currentMode = 'idle', stream }, ref) => {
+const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlayingBack, currentMode = 'idle', stream, recordedBlob }, ref) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
   // Expose video control methods through ref
   useImperativeHandle(ref, () => ({
@@ -50,6 +53,24 @@ const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlaying
     getCurrentTime: () => videoRef.current?.currentTime || 0,
     getDuration: () => videoRef.current?.duration || 0,
     getVideoElement: () => videoRef.current,
+    setVideoSource: (blob: Blob) => {
+      if (videoRef.current) {
+        // Revoke previous blob URL if exists
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+        }
+        
+        // Create new blob URL
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+        
+        // Set as video source
+        videoRef.current.srcObject = null;
+        videoRef.current.src = url;
+        videoRef.current.muted = false;
+        log.log("Video source set to recorded blob");
+      }
+    },
   }), []);
 
   // Attach stream to video element when stream changes
@@ -90,16 +111,58 @@ const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlaying
     }
   }, []);
 
+  // Handle playback mode with recorded blob
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    if (isPlayingBack && recordedBlob) {
+      log.log("Setting up playback with recorded blob");
+      
+      // Revoke previous blob URL if exists
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+      
+      // Create new blob URL
+      const url = URL.createObjectURL(recordedBlob);
+      blobUrlRef.current = url;
+      
+      // Set as video source for playback
+      videoElement.srcObject = null;
+      videoElement.src = url;
+      videoElement.muted = false;
+      videoElement.load();
+    } else if (!isPlayingBack && stream) {
+      // Back to stream mode
+      log.log("Switching back to stream mode");
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+      videoElement.src = '';
+    }
+  }, [isPlayingBack, recordedBlob, stream]);
+
   // Simplified mode handling - let the stream handle most of this
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
-    if (currentMode === 'idle') {
+    if (currentMode === 'idle' && !isPlayingBack) {
       videoElement.pause();
       videoElement.currentTime = 0;
     }
-  }, [currentMode]);
+  }, [currentMode, isPlayingBack]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative w-full h-full bg-black">

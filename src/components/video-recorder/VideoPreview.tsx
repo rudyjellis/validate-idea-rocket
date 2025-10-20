@@ -18,6 +18,7 @@ interface VideoPreviewProps {
   isPlayingBack?: boolean;
   currentStream?: MediaStream | null;
   hasRecording?: boolean;
+  recordedBlob?: Blob | null;
   onTapToRecord?: () => void;
   onTapToPause?: () => void;
   onTapToStop?: () => void;
@@ -36,6 +37,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
     isPlayingBack = false,
     currentStream,
     hasRecording = false,
+    recordedBlob,
     onTapToRecord,
     onTapToPause,
     onTapToStop,
@@ -111,6 +113,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
               isPlayingBack={isPlayingBack}
               currentMode={isPlayingBack ? 'playback' : 'stream'}
               stream={currentStream}
+              recordedBlob={recordedBlob}
             />
             
             {/* Simple Recording Indicator */}
