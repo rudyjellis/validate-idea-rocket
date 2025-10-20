@@ -6,6 +6,7 @@ const log = createVideoRecorderLogger('VideoElement');
 interface VideoElementProps {
   isPlayingBack?: boolean;
   currentMode?: 'stream' | 'playback' | 'idle';
+  stream?: MediaStream | null;
 }
 
 export interface VideoElementRef {
@@ -14,9 +15,10 @@ export interface VideoElementRef {
   reset: () => void;
   getCurrentTime: () => number;
   getDuration: () => number;
+  getVideoElement: () => HTMLVideoElement | null;
 }
 
-const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlayingBack, currentMode = 'idle' }, ref) => {
+const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlayingBack, currentMode = 'idle', stream }, ref) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Expose video control methods through ref
@@ -47,7 +49,30 @@ const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlaying
     },
     getCurrentTime: () => videoRef.current?.currentTime || 0,
     getDuration: () => videoRef.current?.duration || 0,
+    getVideoElement: () => videoRef.current,
   }), []);
+
+  // Attach stream to video element when stream changes
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    if (stream && currentMode === 'stream') {
+      log.log("Attaching stream to video element");
+      videoElement.srcObject = stream;
+      videoElement.muted = true;
+      videoElement.autoplay = true;
+      videoElement.playsInline = true;
+      
+      // Try to play the stream
+      videoElement.play().catch(error => {
+        log.error("Error auto-playing stream:", error);
+      });
+    } else if (!stream && currentMode === 'idle') {
+      log.log("Clearing video element stream");
+      videoElement.srcObject = null;
+    }
+  }, [stream, currentMode]);
 
   useEffect(() => {
     const videoElement = videoRef.current;

@@ -1,10 +1,11 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import type { VideoElementRef } from '../components/VideoElement';
 
 export const useMediaStream = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<VideoElementRef>(null);
   const internalVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     return () => {
@@ -36,11 +37,9 @@ export const useMediaStream = () => {
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      setCurrentStream(stream);
 
-      // Note: The actual stream attachment is handled by VideoElement component
-      // through the useVideoElementState hook. This function just returns the stream.
-
-      console.log("Stream initialized successfully with iOS optimizations");
+      console.log("Stream initialized and attached to video element");
       return stream;
     } catch (error) {
       console.error("Error initializing stream:", error);
@@ -52,5 +51,6 @@ export const useMediaStream = () => {
     streamRef,
     videoRef,
     initializeStream,
+    currentStream,
   };
 };

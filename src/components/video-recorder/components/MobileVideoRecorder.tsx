@@ -18,6 +18,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     videoRef,
     recordingState,
     timeLeft,
+    currentStream,
     cameras,
     selectedCamera,
     setSelectedCamera,
@@ -77,6 +78,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           timeLeft={timeLeft}
           recordingState={recordingState}
           isPlayingBack={isPlayingBack}
+          currentStream={currentStream}
         />
       </div>
 

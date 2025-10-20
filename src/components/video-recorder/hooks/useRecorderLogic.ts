@@ -24,6 +24,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     initializeStream,
     downloadVideo,
     resetRecording,
+    currentStream,
   } = useVideoRecording(maxDuration);
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
@@ -104,6 +105,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     recordingState,
     recordedChunks,
     timeLeft,
+    currentStream,
     
     // Camera state
     cameras,

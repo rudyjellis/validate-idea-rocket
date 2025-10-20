@@ -16,6 +16,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     recordingState,
     recordedChunks,
     timeLeft,
+    currentStream,
     cameras,
     selectedCamera,
     setSelectedCamera,
@@ -56,6 +57,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
         timeLeft={timeLeft}
         isPlayingBack={isPlayingBack}
         recordedChunks={recordedChunks}
+        currentStream={currentStream}
         onPlayback={handlePlayback}
         onStopPlayback={handleStopPlayback}
         onDownload={handleDownload}

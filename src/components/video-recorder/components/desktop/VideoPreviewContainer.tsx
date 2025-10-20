@@ -10,6 +10,7 @@ interface VideoPreviewContainerProps {
   timeLeft: number;
   isPlayingBack: boolean;
   recordedChunks: Blob[];
+  currentStream: MediaStream | null;
   onPlayback: () => void;
   onStopPlayback: () => void;
   onDownload: (format: 'webm' | 'mp4') => void;
@@ -22,6 +23,7 @@ const VideoPreviewContainer = ({
   timeLeft,
   isPlayingBack,
   recordedChunks,
+  currentStream,
   onPlayback,
   onStopPlayback,
   onDownload,
@@ -38,6 +40,7 @@ const VideoPreviewContainer = ({
         timeLeft={timeLeft}
         recordingState={recordingState}
         isPlayingBack={isPlayingBack}
+        currentStream={currentStream}
         onPlayback={recordedChunks.length > 0 ? onPlayback : undefined}
         onStopPlayback={onStopPlayback}
         onDownload={onDownload}

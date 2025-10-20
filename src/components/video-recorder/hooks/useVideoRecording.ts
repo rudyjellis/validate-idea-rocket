@@ -12,7 +12,7 @@ export const useVideoRecording = (maxDuration: number = 30) => {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const { toast } = useToast();
   
-  const { streamRef, videoRef, initializeStream } = useMediaStream();
+  const { streamRef, videoRef, initializeStream, currentStream } = useMediaStream();
   const { timeLeft, startTimer, stopTimer, pauseTimer, resetTimer } = useRecordingTimer(maxDuration);
   const { 
     recordedChunks, 
@@ -96,5 +96,6 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     initializeStream,
     downloadVideo,
     resetRecording,
+    currentStream,
   };
 };

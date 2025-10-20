@@ -16,6 +16,7 @@ interface VideoPreviewProps {
   timeLeft: number;
   recordingState: RecordingState;
   isPlayingBack?: boolean;
+  currentStream?: MediaStream | null;
   onTapToRecord?: () => void;
   onTapToPause?: () => void;
   onTapToStop?: () => void;
@@ -31,6 +32,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
     timeLeft,
     recordingState,
     isPlayingBack = false,
+    currentStream,
     onTapToRecord,
     onTapToPause,
     onTapToStop,
@@ -104,6 +106,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
               ref={ref} 
               isPlayingBack={isPlayingBack}
               currentMode={recordingState === 'idle' ? 'idle' : 'stream'}
+              stream={currentStream}
             />
             
             {/* Simple Recording Indicator */}
