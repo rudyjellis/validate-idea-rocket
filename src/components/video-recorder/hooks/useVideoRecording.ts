@@ -13,7 +13,7 @@ export const useVideoRecording = (maxDuration: number = 30) => {
   const { toast } = useToast();
   
   const { streamRef, videoRef, initializeStream, currentStream } = useMediaStream();
-  const { timeLeft, startTimer, stopTimer, pauseTimer, resetTimer } = useRecordingTimer(maxDuration);
+  
   const { 
     recordedChunks, 
     startRecording: startMediaRecorder, 
@@ -23,6 +23,36 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     resetRecording: resetMediaRecorder,
     downloadRecording
   } = useMediaRecorder();
+
+  // Declare stopRecording ref to avoid circular dependency
+  const stopRecordingRef = useRef<(() => void) | null>(null);
+
+  // Initialize timer with auto-stop callback
+  const handleTimeExpired = useCallback(() => {
+    log.log("Recording time expired - auto-stopping");
+    if (stopRecordingRef.current) {
+      stopRecordingRef.current();
+    }
+    toast({
+      title: "Recording Complete",
+      description: `Maximum recording duration of ${maxDuration} seconds reached.`,
+    });
+  }, [toast, maxDuration]);
+
+  const { timeLeft, startTimer, stopTimer, pauseTimer, resetTimer } = useRecordingTimer(maxDuration, handleTimeExpired);
+
+  const stopRecording = useCallback(() => {
+    log.log("Stopping recording");
+    stopMediaRecorder();
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    stopTimer();
+    setRecordingState('idle');
+  }, [stopMediaRecorder, streamRef, stopTimer]);
+
+  // Update ref when stopRecording changes
+  stopRecordingRef.current = stopRecording;
 
   const startRecording = useCallback(async (selectedCamera: string) => {
     log.log("Starting recording with camera:", selectedCamera);
@@ -48,16 +78,6 @@ export const useVideoRecording = (maxDuration: number = 30) => {
       });
     }
   }, [initializeStream, startMediaRecorder, startTimer, toast]);
-
-  const stopRecording = useCallback(() => {
-    log.log("Stopping recording");
-    stopMediaRecorder();
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-    stopTimer();
-    setRecordingState('idle');
-  }, [stopMediaRecorder, stopTimer]);
 
   const pauseRecording = useCallback(() => {
     log.log("Pausing recording");
