@@ -33,6 +33,7 @@ export const useMediaStream = () => {
         height: { ideal: 1280, min: 640 },
         aspectRatio: { ideal: 9/16 },
         facingMode: 'user',
+        zoom: { ideal: 1.0 },  // Zoomed out for wider field of view
       } : {
         deviceId: selectedCamera ? { ideal: selectedCamera } : undefined,
         width: { ideal: 1280, min: 640 },
@@ -55,11 +56,21 @@ export const useMediaStream = () => {
       streamRef.current = stream;
       setCurrentStream(stream);
 
-      // Log actual stream dimensions for verification
+      // Log actual stream dimensions and capabilities for verification
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         const settings = videoTrack.getSettings();
+        const capabilities = videoTrack.getCapabilities();
+        
         log.log(`Stream initialized: ${settings.width}x${settings.height} (aspect: ${(settings.width! / settings.height!).toFixed(4)})`);
+        
+        // Log zoom info if available
+        if (settings.zoom !== undefined) {
+          log.log(`Zoom: ${settings.zoom}`);
+        }
+        if (capabilities.zoom) {
+          log.log(`Zoom capabilities: min=${capabilities.zoom.min}, max=${capabilities.zoom.max}`);
+        }
       }
 
       return stream;
