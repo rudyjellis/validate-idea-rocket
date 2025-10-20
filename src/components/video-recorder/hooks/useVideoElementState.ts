@@ -21,18 +21,20 @@ export const useVideoElementState = () => {
       log.log("Switching video element to stream mode");
       
       // Clear any existing sources
-      if (videoRef.current.src) {
+      if (videoRef.current && videoRef.current.src) {
         videoRef.current.src = '';
         videoRef.current.load();
       }
       
       // Set the stream as source
-      videoRef.current.srcObject = stream;
-      
-      // Ensure proper attributes for live stream
-      videoRef.current.muted = true;
-      videoRef.current.autoplay = true;
-      videoRef.current.playsInline = true;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        
+        // Ensure proper attributes for live stream
+        videoRef.current.muted = true;
+        videoRef.current.autoplay = true;
+        videoRef.current.playsInline = true;
+      }
       
       // Wait for the stream to be ready
       await new Promise((resolve, reject) => {
@@ -53,8 +55,10 @@ export const useVideoElementState = () => {
           reject(e);
         };
         
-        videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
-        videoRef.current.addEventListener('error', handleError);
+        if (videoRef.current) {
+          videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+          videoRef.current.addEventListener('error', handleError);
+        }
       });
       
       setCurrentMode('stream');
@@ -78,18 +82,20 @@ export const useVideoElementState = () => {
       log.log("Switching video element to playback mode");
       
       // Clear the stream source
-      if (videoRef.current.srcObject) {
+      if (videoRef.current && videoRef.current.srcObject) {
         videoRef.current.srcObject = null;
       }
       
       // Create object URL for the blob
       const url = URL.createObjectURL(videoBlob);
-      videoRef.current.src = url;
-      
-      // Set attributes for playback
-      videoRef.current.muted = false;
-      videoRef.current.autoplay = false;
-      videoRef.current.playsInline = true;
+      if (videoRef.current) {
+        videoRef.current.src = url;
+        
+        // Set attributes for playback
+        videoRef.current.muted = false;
+        videoRef.current.autoplay = false;
+        videoRef.current.playsInline = true;
+      }
       
       // Wait for the video to be ready
       await new Promise((resolve, reject) => {
@@ -110,8 +116,10 @@ export const useVideoElementState = () => {
           reject(e);
         };
         
-        videoRef.current.addEventListener('canplay', handleCanPlay);
-        videoRef.current.addEventListener('error', handleError);
+        if (videoRef.current) {
+          videoRef.current.addEventListener('canplay', handleCanPlay);
+          videoRef.current.addEventListener('error', handleError);
+        }
       });
       
       setCurrentMode('playback');
@@ -130,16 +138,18 @@ export const useVideoElementState = () => {
     log.log("Resetting video element to idle mode");
     
     // Stop any playback
-    videoRef.current.pause();
-    videoRef.current.currentTime = 0;
-    
-    // Clear sources
-    if (videoRef.current.srcObject) {
-      videoRef.current.srcObject = null;
-    }
-    if (videoRef.current.src) {
-      URL.revokeObjectURL(videoRef.current.src);
-      videoRef.current.src = '';
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+      
+      // Clear sources
+      if (videoRef.current.srcObject) {
+        videoRef.current.srcObject = null;
+      }
+      if (videoRef.current.src) {
+        URL.revokeObjectURL(videoRef.current.src);
+        videoRef.current.src = '';
+      }
     }
     
     setCurrentMode('idle');
