@@ -17,6 +17,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     setIsInitializing,
     videoRef,
     recordingState,
+    recordedChunks,
     timeLeft,
     currentStream,
     cameras,
@@ -81,6 +82,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           recordingState={recordingState}
           isPlayingBack={isPlayingBack}
           currentStream={currentStream}
+          hasRecording={recordedChunks.length > 0}
           onTapToRecord={handleStartRecording}
           onTapToPause={pauseRecording}
           onTapToResume={resumeRecording}
@@ -88,13 +90,6 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           onDownload={handleDownload}
         />
       </div>
-
-      <MobileRecordingControls
-        recordingState={recordingState}
-        onTapToPause={pauseRecording}
-        onTapToStop={stopRecording}
-        onDownload={handleDownload}
-      />
     </div>
   );
 };

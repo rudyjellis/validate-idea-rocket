@@ -9,6 +9,7 @@ interface MobileControlsProps {
   isRecording: boolean;
   isPlayingBack: boolean;
   isFullscreen: boolean;
+  hasRecording?: boolean;
   onTapToRecord?: () => void;
   onTapToPause?: () => void;
   onTapToStop?: () => void;
@@ -22,6 +23,7 @@ const MobileControls = ({
   isRecording,
   isPlayingBack,
   isFullscreen,
+  hasRecording = false,
   onTapToRecord,
   onTapToPause,
   onTapToStop,
@@ -31,24 +33,24 @@ const MobileControls = ({
 }: MobileControlsProps) => {
   return (
     <>
-      {recordingState === "idle" && !isPlayingBack && (
+      {recordingState === "idle" && !isPlayingBack && !hasRecording && (
         <>
           <TapToRecordIndicator />
           <RecordButton onClick={onTapToRecord!} />
         </>
       )}
 
-      {recordingState === "recording" && (
+      {(recordingState === "recording" || (recordingState === "idle" && hasRecording)) && (
         <RecordingControls
           recordingState={recordingState}
           onTapToPause={onTapToPause}
           onTapToStop={onTapToStop}
-          hasRecording={false}
+          hasRecording={hasRecording}
           onStartRecording={() => {}}
           onStopRecording={() => {}}
           onPauseRecording={() => {}}
           onResumeRecording={() => {}}
-          onDownload={onDownload}
+          onDownload={onDownload || (() => {})}
           onPlayback={() => {}}
         />
       )}

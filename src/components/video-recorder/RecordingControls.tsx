@@ -28,6 +28,8 @@ const RecordingControls = (props: RecordingControlsProps) => {
         recordingState={props.recordingState}
         onTapToPause={props.onTapToPause}
         onTapToStop={props.onTapToStop}
+        onDownload={props.onDownload}
+        hasRecording={props.hasRecording}
       />
     );
   }

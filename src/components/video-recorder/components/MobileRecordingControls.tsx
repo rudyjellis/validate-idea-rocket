@@ -13,6 +13,7 @@ interface MobileRecordingControlsProps {
   onTapToPause?: () => void;
   onTapToStop?: () => void;
   onDownload?: (format: 'webm' | 'mp4') => void;
+  hasRecording?: boolean;
 }
 
 const MobileRecordingControls = ({
@@ -20,40 +21,49 @@ const MobileRecordingControls = ({
   onTapToPause,
   onTapToStop,
   onDownload,
+  hasRecording = false,
 }: MobileRecordingControlsProps) => {
-  if (recordingState !== "recording") return null;
+  // Show controls during recording
+  if (recordingState === "recording") {
+    return (
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
+        {onTapToPause && (
+          <Button
+            onClick={onTapToPause}
+            variant="secondary"
+            size="lg"
+            className="rounded-full shadow-lg"
+          >
+            Pause
+          </Button>
+        )}
+        {onTapToStop && (
+          <Button
+            onClick={onTapToStop}
+            variant="destructive"
+            size="icon"
+            className="rounded-full w-12 h-12 shadow-lg"
+          >
+            <StopCircle className="h-6 w-6" />
+          </Button>
+        )}
+      </div>
+    );
+  }
 
-  return (
-    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4">
-      {onTapToPause && (
-        <Button
-          onClick={onTapToPause}
-          variant="secondary"
-          size="lg"
-          className="rounded-full shadow-lg"
-        >
-          Pause
-        </Button>
-      )}
-      {onTapToStop && (
-        <Button
-          onClick={onTapToStop}
-          variant="destructive"
-          size="icon"
-          className="rounded-full w-12 h-12 shadow-lg"
-        >
-          <StopCircle className="h-6 w-6" />
-        </Button>
-      )}
-      {onDownload && (
+  // Show download button after recording (when idle with recording available)
+  if (recordingState === "idle" && hasRecording && onDownload) {
+    return (
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              size="icon"
-              className="rounded-full w-12 h-12 shadow-lg bg-white"
+              size="lg"
+              className="rounded-full shadow-lg bg-white"
             >
-              <Download className="h-6 w-6" />
+              <Download className="h-5 w-5 mr-2" />
+              Download
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -65,9 +75,11 @@ const MobileRecordingControls = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default MobileRecordingControls;

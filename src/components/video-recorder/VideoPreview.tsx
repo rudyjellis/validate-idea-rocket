@@ -17,6 +17,7 @@ interface VideoPreviewProps {
   recordingState: RecordingState;
   isPlayingBack?: boolean;
   currentStream?: MediaStream | null;
+  hasRecording?: boolean;
   onTapToRecord?: () => void;
   onTapToPause?: () => void;
   onTapToStop?: () => void;
@@ -33,6 +34,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
     recordingState,
     isPlayingBack = false,
     currentStream,
+    hasRecording = false,
     onTapToRecord,
     onTapToPause,
     onTapToStop,
@@ -122,6 +124,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
                 isRecording={isRecording}
                 isPlayingBack={isPlayingBack}
                 isFullscreen={isFullscreen}
+                hasRecording={hasRecording}
                 onTapToRecord={onTapToRecord}
                 onTapToPause={onTapToPause}
                 onTapToStop={onTapToStop}
