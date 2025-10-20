@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import { Badge } from '@/components/ui/badge';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Video, VideoOff, Timer } from 'lucide-react';
 import type { RecordingState } from '../types';
@@ -63,20 +62,25 @@ const RecordingStatusIndicator = ({
     <div className={`absolute top-4 left-4 right-4 z-20 flex items-center justify-between ${isMobile ? 'px-4' : 'px-2'}`}>
       {/* Recording Status */}
       <div className="flex items-center gap-2">
-        <Badge
-          variant={statusConfig.variant}
-          className={`flex items-center gap-2 ${statusConfig.pulse ? 'animate-pulse' : ''}`}
+        <div
+          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${
+            statusConfig.variant === 'destructive' 
+              ? 'bg-red-500 text-white border-red-500' 
+              : statusConfig.variant === 'secondary'
+              ? 'bg-gray-200 text-gray-800 border-gray-300'
+              : 'bg-white text-gray-800 border-gray-300'
+          } ${statusConfig.pulse ? 'animate-pulse' : ''}`}
         >
           <span className="text-lg">{statusConfig.icon}</span>
           <span className="font-medium">{statusConfig.text}</span>
-        </Badge>
+        </div>
 
         {/* Timer */}
         {recordingState !== 'idle' && (
-          <Badge variant="secondary" className="flex items-center gap-1">
+          <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-800 border border-gray-300">
             <Timer className="h-3 w-3" />
             <span className="font-mono text-sm">{formatTime(timeLeft)}</span>
-          </Badge>
+          </div>
         )}
       </div>
 

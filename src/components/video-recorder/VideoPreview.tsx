@@ -6,8 +6,7 @@ import RecordingTimer from "./components/RecordingTimer";
 import VideoElement from "./components/VideoElement";
 import MobileControls from "./components/video-preview/MobileControls";
 import DesktopControls from "./components/video-preview/DesktopControls";
-import RecordingStatusIndicator from "./components/RecordingStatusIndicator";
-import RecordingPulseEffect from "./components/RecordingPulseEffect";
+import SimpleRecordingIndicator from "./components/SimpleRecordingIndicator";
 import { createVideoRecorderLogger } from "@/utils/logger";
 
 const log = createVideoRecorderLogger('VideoPreview');
@@ -120,15 +119,10 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
               isPlayingBack={isPlayingBack} 
             />
             
-            {/* Enhanced Recording Indicators */}
-            <RecordingStatusIndicator
+            {/* Simple Recording Indicator */}
+            <SimpleRecordingIndicator
               recordingState={recordingState}
               timeLeft={timeLeft}
-              isMobile={isMobile}
-            />
-            
-            <RecordingPulseEffect
-              recordingState={recordingState}
               isMobile={isMobile}
             />
             

@@ -1,7 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -64,55 +62,53 @@ class VideoRecorderErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-          <div className="max-w-md w-full">
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Video Recorder Error</AlertTitle>
-              <AlertDescription className="mt-2">
-                <div className="space-y-3">
-                  <p>
-                    Something went wrong with the video recorder. This might be due to:
-                  </p>
-                  <ul className="text-sm space-y-1 ml-4">
-                    <li>• Camera permission denied</li>
-                    <li>• Browser compatibility issues</li>
-                    <li>• Hardware acceleration problems</li>
-                    <li>• Network connectivity issues</li>
-                  </ul>
-                  
-                  {this.state.error && (
-                    <details className="mt-3">
-                      <summary className="cursor-pointer text-sm font-medium">
-                        Technical Details
-                      </summary>
-                      <pre className="mt-2 text-xs bg-background p-2 rounded border overflow-auto max-h-32">
-                        {this.state.error.toString()}
-                        {this.state.errorInfo?.componentStack}
-                      </pre>
-                    </details>
-                  )}
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      onClick={this.handleRetry}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Try Again
-                    </Button>
-                    <Button
-                      onClick={() => window.location.reload()}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Reload Page
-                    </Button>
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg border border-red-200 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="text-2xl">⚠️</div>
+              <h2 className="text-xl font-semibold text-red-600">Video Recorder Error</h2>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-gray-700">
+                Something went wrong with the video recorder. This might be due to:
+              </p>
+              <ul className="text-sm space-y-1 ml-4 text-gray-600">
+                <li>• Camera permission denied</li>
+                <li>• Browser compatibility issues</li>
+                <li>• Hardware acceleration problems</li>
+                <li>• Network connectivity issues</li>
+              </ul>
+              
+              {this.state.error && (
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-sm font-medium text-gray-700">
+                    Technical Details
+                  </summary>
+                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded border overflow-auto max-h-32">
+                    {this.state.error.toString()}
+                    {this.state.errorInfo?.componentStack}
+                  </pre>
+                </details>
+              )}
+              
+              <div className="flex gap-2 mt-4">
+                <Button
+                  onClick={this.handleRetry}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  🔄 Try Again
+                </Button>
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  size="sm"
+                >
+                  Reload Page
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       );

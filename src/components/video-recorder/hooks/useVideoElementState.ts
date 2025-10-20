@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { createVideoRecorderLogger } from '@/utils/logger';
 
 const log = createVideoRecorderLogger('useVideoElementState');

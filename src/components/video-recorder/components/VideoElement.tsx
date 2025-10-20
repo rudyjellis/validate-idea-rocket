@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { createVideoRecorderLogger } from "@/utils/logger";
 
 const log = createVideoRecorderLogger('VideoElement');
