@@ -7,6 +7,7 @@ import VideoElement, { VideoElementRef } from "./components/VideoElement";
 import MobileControls from "./components/video-preview/MobileControls";
 import DesktopControls from "./components/video-preview/DesktopControls";
 import SimpleRecordingIndicator from "./components/SimpleRecordingIndicator";
+import CountdownOverlay from "./components/CountdownOverlay";
 import { createVideoRecorderLogger } from "@/utils/logger";
 
 const log = createVideoRecorderLogger('VideoPreview');
@@ -19,6 +20,8 @@ interface VideoPreviewProps {
   currentStream?: MediaStream | null;
   hasRecording?: boolean;
   recordedBlob?: Blob | null;
+  showCountdown?: boolean;
+  onCountdownComplete?: () => void;
   onTapToRecord?: () => void;
   onTapToPause?: () => void;
   onTapToStop?: () => void;
@@ -38,6 +41,8 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
     currentStream,
     hasRecording = false,
     recordedBlob,
+    showCountdown = false,
+    onCountdownComplete,
     onTapToRecord,
     onTapToPause,
     onTapToStop,
@@ -115,6 +120,11 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
               stream={currentStream}
               recordedBlob={recordedBlob}
             />
+            
+            {/* Countdown Overlay */}
+            {showCountdown && onCountdownComplete && (
+              <CountdownOverlay onComplete={onCountdownComplete} />
+            )}
             
             {/* Simple Recording Indicator */}
             <SimpleRecordingIndicator

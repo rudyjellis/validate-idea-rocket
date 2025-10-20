@@ -10,6 +10,7 @@ const log = createVideoRecorderLogger('useVideoRecording');
 
 export const useVideoRecording = (maxDuration: number = 30) => {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
+  const [showCountdown, setShowCountdown] = useState(false);
   const { toast } = useToast();
   
   const { streamRef, videoRef, initializeStream, currentStream } = useMediaStream();
@@ -54,6 +55,16 @@ export const useVideoRecording = (maxDuration: number = 30) => {
   // Update ref when stopRecording changes
   stopRecordingRef.current = stopRecording;
 
+  const startRecordingAfterCountdown = useCallback(async (stream: MediaStream) => {
+    log.log("Starting recording after countdown");
+    // Start the MediaRecorder with the stream
+    startMediaRecorder(stream);
+    setRecordingState('recording');
+    startTimer();
+    setShowCountdown(false);
+    log.log("Recording started successfully");
+  }, [startMediaRecorder, startTimer]);
+
   const startRecording = useCallback(async (selectedCamera: string) => {
     log.log("Starting recording with camera:", selectedCamera);
     try {
@@ -63,12 +74,11 @@ export const useVideoRecording = (maxDuration: number = 30) => {
         return;
       }
 
-      // Start the MediaRecorder with the stream
-      startMediaRecorder(stream);
-      setRecordingState('recording');
-      startTimer();
+      // Show countdown before starting recording
+      setShowCountdown(true);
       
-      log.log("Recording started successfully");
+      // Return the stream so countdown can trigger actual recording
+      return stream;
     } catch (error) {
       log.error("Error starting recording:", error);
       toast({
@@ -77,7 +87,7 @@ export const useVideoRecording = (maxDuration: number = 30) => {
         description: "Could not start recording. Please try again.",
       });
     }
-  }, [initializeStream, startMediaRecorder, startTimer, toast]);
+  }, [initializeStream, toast]);
 
   const pauseRecording = useCallback(() => {
     log.log("Pausing recording");
@@ -110,6 +120,7 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     recordedChunks,
     timeLeft,
     startRecording,
+    startRecordingAfterCountdown,
     stopRecording,
     pauseRecording,
     resumeRecording,
@@ -117,5 +128,6 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     downloadVideo,
     resetRecording,
     currentStream,
+    showCountdown,
   };
 };

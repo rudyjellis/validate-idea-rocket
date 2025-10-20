@@ -25,10 +25,12 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     setSelectedCamera,
     initializeStream,
     handleStartRecording,
+    handleCountdownComplete,
     pauseRecording,
     resumeRecording,
     stopRecording,
     handleDownload,
+    showCountdown,
     toast,
   } = useRecorderLogic({ maxDuration });
 
@@ -84,6 +86,8 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           currentStream={currentStream}
           hasRecording={recordedChunks.length > 0}
           recordedBlob={recordedChunks.length > 0 ? new Blob(recordedChunks, { type: recordedChunks[0]?.type || 'video/webm' }) : null}
+          showCountdown={showCountdown}
+          onCountdownComplete={handleCountdownComplete}
           onTapToRecord={handleStartRecording}
           onTapToPause={pauseRecording}
           onTapToResume={resumeRecording}

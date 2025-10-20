@@ -21,6 +21,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     selectedCamera,
     setSelectedCamera,
     handleStartRecording,
+    handleCountdownComplete,
     handleDownload,
     handlePlayback,
     handleStopPlayback,
@@ -29,6 +30,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     resumeRecording,
     stopRecording,
     initializeStream,
+    showCountdown,
   } = useRecorderLogic({ maxDuration });
 
 
@@ -58,6 +60,8 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
         isPlayingBack={isPlayingBack}
         recordedChunks={recordedChunks}
         currentStream={currentStream}
+        showCountdown={showCountdown}
+        onCountdownComplete={handleCountdownComplete}
         onPlayback={handlePlayback}
         onStopPlayback={handleStopPlayback}
         onDownload={handleDownload}

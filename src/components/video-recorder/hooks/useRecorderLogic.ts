@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { VideoRecorderProps } from '../types';
 import { useVideoRecording } from './useVideoRecording';
 import { useCameraDevices } from './useCameraDevices';
@@ -11,6 +11,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
   const [isPlayingBack, setIsPlayingBack] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const { toast } = useToast();
+  const pendingStreamRef = useRef<MediaStream | null>(null);
 
   const {
     videoRef,
@@ -18,6 +19,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     recordedChunks,
     timeLeft,
     startRecording,
+    startRecordingAfterCountdown,
     stopRecording,
     pauseRecording,
     resumeRecording,
@@ -25,6 +27,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     downloadVideo,
     resetRecording,
     currentStream,
+    showCountdown,
   } = useVideoRecording(maxDuration);
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
@@ -42,8 +45,19 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     }
     
     setIsPlayingBack(false);
-    await startRecording(selectedCamera);
+    const stream = await startRecording(selectedCamera);
+    if (stream) {
+      pendingStreamRef.current = stream;
+    }
   }, [selectedCamera, startRecording, toast]);
+
+  const handleCountdownComplete = useCallback(() => {
+    log.log("Countdown complete, starting actual recording");
+    if (pendingStreamRef.current) {
+      startRecordingAfterCountdown(pendingStreamRef.current);
+      pendingStreamRef.current = null;
+    }
+  }, [startRecordingAfterCountdown]);
 
   const handleDownload = useCallback((format: "webm" | "mp4") => {
     log.log("Initiating download with format:", format);
@@ -106,6 +120,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     recordedChunks,
     timeLeft,
     currentStream,
+    showCountdown,
     
     // Camera state
     cameras,
@@ -114,6 +129,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     
     // Handlers
     handleStartRecording,
+    handleCountdownComplete,
     handleDownload,
     handlePlayback,
     handleStopPlayback,
