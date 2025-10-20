@@ -51,7 +51,7 @@ const SimpleRecordingIndicator = ({
   const config = getStatusConfig();
 
   return (
-    <div className={`absolute top-4 right-4 z-20 flex flex-col items-end gap-2 ${isMobile ? 'pr-4' : 'pr-2'}`}>
+    <div className={`absolute top-14 right-4 z-20 flex flex-col items-end gap-2 ${isMobile ? 'pr-4' : 'pr-2'}`}>
       {/* Recording Status */}
       <div
         className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${config.bgColor} ${config.textColor} ${
@@ -61,14 +61,6 @@ const SimpleRecordingIndicator = ({
         <span className="text-lg">{config.icon}</span>
         <span className="font-medium">{config.text}</span>
       </div>
-
-      {/* Timer */}
-      {recordingState !== 'idle' && (
-        <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
-          <span className="text-xs">⏱️</span>
-          <span className="font-mono text-sm">{formatTime(timeLeft)}</span>
-        </div>
-      )}
     </div>
   );
 };
