@@ -73,8 +73,7 @@ const RecordingTimer = ({ isRecording, isPaused }: RecordingTimerProps) => {
         textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
       }}
     >
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm">
-        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+      <div className="px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm">
         <span className="text-white font-mono text-sm font-medium">
           {formatTime(elapsedSeconds)}
         </span>
