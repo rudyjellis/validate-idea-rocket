@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Video, StopCircle, Pause, Play, Download } from "lucide-react";
+import { Video, StopCircle, Pause, Play, Download, RotateCcw } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -31,6 +31,7 @@ const DesktopRecordingControls = ({
   onDownload,
   onPlayback,
   onStopPlayback,
+  onRestart,
   hasRecording,
   isPlayingBack,
 }: DesktopRecordingControlsProps) => {
@@ -101,6 +102,12 @@ const DesktopRecordingControls = ({
                   "Resume Recording",
                   "secondary"
                 )}
+            {onRestart && renderControlButton(
+              onRestart,
+              <RotateCcw className="h-5 w-5" />,
+              "Restart Recording",
+              "outline"
+            )}
             {renderControlButton(
               onStopRecording,
               <StopCircle className="h-5 w-5" />,

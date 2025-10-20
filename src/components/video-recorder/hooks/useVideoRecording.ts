@@ -110,6 +110,20 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     setRecordingState('idle');
   }, [resetMediaRecorder, resetTimer]);
 
+  const restartRecording = useCallback(() => {
+    log.log("Restarting recording");
+    // Reset the recording data
+    resetMediaRecorder();
+    resetTimer();
+    // Keep the stream active and restart recording immediately
+    if (streamRef.current) {
+      startMediaRecorder(streamRef.current);
+      setRecordingState('recording');
+      startTimer();
+      log.log("Recording restarted successfully");
+    }
+  }, [resetMediaRecorder, resetTimer, startMediaRecorder, startTimer, streamRef]);
+
   const downloadVideo = useCallback((format: VideoFormat) => {
     downloadRecording(format);
   }, [downloadRecording]);
@@ -127,6 +141,7 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     initializeStream,
     downloadVideo,
     resetRecording,
+    restartRecording,
     currentStream,
     showCountdown,
   };

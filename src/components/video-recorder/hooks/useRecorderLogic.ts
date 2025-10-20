@@ -26,6 +26,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     initializeStream,
     downloadVideo,
     resetRecording,
+    restartRecording,
     currentStream,
     showCountdown,
   } = useVideoRecording(maxDuration);
@@ -146,6 +147,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     pauseRecording,
     resumeRecording,
     resetRecording,
+    restartRecording,
     initializeStream,
     
     // Toast for error handling

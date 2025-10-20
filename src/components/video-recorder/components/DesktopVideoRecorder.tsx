@@ -29,6 +29,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     pauseRecording,
     resumeRecording,
     stopRecording,
+    restartRecording,
     initializeStream,
     showCountdown,
   } = useRecorderLogic({ maxDuration });
@@ -69,6 +70,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
         onTapToStop={stopRecording}
         onTapToPause={pauseRecording}
         onTapToResume={resumeRecording}
+        onRestart={restartRecording}
       />
 
       <div className="mt-4">
@@ -78,6 +80,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           onStopRecording={stopRecording}
           onPauseRecording={pauseRecording}
           onResumeRecording={resumeRecording}
+          onRestart={restartRecording}
           onDownload={handleDownload}
           onPlayback={handlePlayback}
           hasRecording={recordedChunks.length > 0}

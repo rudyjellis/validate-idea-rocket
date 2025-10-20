@@ -20,6 +20,7 @@ interface VideoPreviewContainerProps {
   onTapToStop?: () => void;
   onTapToPause?: () => void;
   onTapToResume?: () => void;
+  onRestart?: () => void;
 }
 
 const VideoPreviewContainer = ({
@@ -39,6 +40,7 @@ const VideoPreviewContainer = ({
   onTapToStop,
   onTapToPause,
   onTapToResume,
+  onRestart,
 }: VideoPreviewContainerProps) => {
   return (
     <div className="mt-4 relative aspect-video bg-black rounded-lg overflow-hidden">
@@ -64,6 +66,7 @@ const VideoPreviewContainer = ({
         onTapToStop={onTapToStop}
         onTapToPause={onTapToPause}
         onTapToResume={onTapToResume}
+        onRestart={onRestart}
       />
     </div>
   );

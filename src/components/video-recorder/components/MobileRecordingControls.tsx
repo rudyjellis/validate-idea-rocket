@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { StopCircle, Download } from "lucide-react";
+import { StopCircle, Download, RotateCcw } from "lucide-react";
 import type { RecordingState } from "../types";
 
 interface MobileRecordingControlsProps {
   recordingState: RecordingState;
   onTapToPause?: () => void;
   onTapToStop?: () => void;
+  onRestart?: () => void;
   onDownload?: (format: 'webm' | 'mp4') => void;
   hasRecording?: boolean;
 }
@@ -14,13 +15,14 @@ const MobileRecordingControls = ({
   recordingState,
   onTapToPause,
   onTapToStop,
+  onRestart,
   onDownload,
   hasRecording = false,
 }: MobileRecordingControlsProps) => {
   // Show controls during recording
   if (recordingState === "recording") {
     return (
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
         {onTapToPause && (
           <Button
             onClick={onTapToPause}
@@ -29,6 +31,16 @@ const MobileRecordingControls = ({
             className="rounded-full shadow-lg"
           >
             Pause
+          </Button>
+        )}
+        {onRestart && (
+          <Button
+            onClick={onRestart}
+            variant="outline"
+            size="icon"
+            className="rounded-full w-12 h-12 shadow-lg bg-white"
+          >
+            <RotateCcw className="h-5 w-5" />
           </Button>
         )}
         {onTapToStop && (

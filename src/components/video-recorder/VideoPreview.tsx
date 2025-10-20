@@ -26,6 +26,7 @@ interface VideoPreviewProps {
   onTapToPause?: () => void;
   onTapToStop?: () => void;
   onTapToResume?: () => void;
+  onRestart?: () => void;
   onPlayback?: () => void;
   onStopPlayback?: () => void;
   onDownload?: (format: 'webm' | 'mp4') => void;
@@ -47,6 +48,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
     onTapToPause,
     onTapToStop,
     onTapToResume,
+    onRestart,
     onPlayback,
     onStopPlayback,
     onDownload,
@@ -152,6 +154,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
                 onTapToPause={onTapToPause}
                 onTapToStop={onTapToStop}
                 onTapToResume={onTapToResume}
+                onRestart={onRestart}
                 onDownload={onDownload}
                 toggleFullscreen={toggleFullscreen}
               />
@@ -165,6 +168,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
                 onTapToStop={onTapToStop}
                 onTapToPause={onTapToPause}
                 onTapToResume={onTapToResume}
+                onRestart={onRestart}
                 onPlayback={onPlayback}
                 onStartRecording={onStartRecording}
                 onDownload={onDownload}

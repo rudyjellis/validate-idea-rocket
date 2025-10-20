@@ -14,6 +14,7 @@ interface MobileControlsProps {
   onTapToPause?: () => void;
   onTapToStop?: () => void;
   onTapToResume?: () => void;
+  onRestart?: () => void;
   onDownload?: (format: 'webm' | 'mp4') => void;
   toggleFullscreen: () => void;
 }
@@ -28,6 +29,7 @@ const MobileControls = ({
   onTapToPause,
   onTapToStop,
   onTapToResume,
+  onRestart,
   onDownload,
   toggleFullscreen,
 }: MobileControlsProps) => {
@@ -50,6 +52,7 @@ const MobileControls = ({
           onStopRecording={() => {}}
           onPauseRecording={() => {}}
           onResumeRecording={() => {}}
+          onRestart={onRestart}
           onDownload={onDownload || (() => {})}
           onPlayback={() => {}}
         />

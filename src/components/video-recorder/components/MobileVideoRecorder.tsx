@@ -29,6 +29,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     pauseRecording,
     resumeRecording,
     stopRecording,
+    restartRecording,
     handleDownload,
     showCountdown,
     toast,
@@ -92,6 +93,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           onTapToPause={pauseRecording}
           onTapToResume={resumeRecording}
           onTapToStop={stopRecording}
+          onRestart={restartRecording}
           onDownload={handleDownload}
         />
       </div>
