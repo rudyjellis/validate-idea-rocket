@@ -1,7 +1,8 @@
 # Version Lock Documentation
 
+**Version**: v0.1.2  
 **Last Verified Working State**: 2025-10-20  
-**Git Commit**: `3ee0604` - feat: add comprehensive test suite and fix camera permissions  
+**Git Commit**: `0f3ef06` - fix: show download button during playback on desktop  
 **Status**: ✅ All systems operational  
 **Production URL**: [validate.digerstudios.com](https://validate.digerstudios.com)
 
