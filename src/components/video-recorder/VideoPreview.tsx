@@ -105,7 +105,7 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
             <VideoElement 
               ref={ref} 
               isPlayingBack={isPlayingBack}
-              currentMode={recordingState === 'idle' ? 'idle' : 'stream'}
+              currentMode={isPlayingBack ? 'playback' : 'stream'}
               stream={currentStream}
             />
             
@@ -115,10 +115,6 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
               timeLeft={timeLeft}
               isMobile={isMobile}
             />
-            
-            {(recordingState === "recording" || recordingState === "paused") && (
-              <RecordingTimer timeLeft={timeLeft} />
-            )}
 
             {isMobile ? (
               <MobileControls

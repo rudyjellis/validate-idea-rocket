@@ -57,7 +57,7 @@ const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlaying
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
-    if (stream && currentMode === 'stream') {
+    if (stream) {
       log.log("Attaching stream to video element");
       videoElement.srcObject = stream;
       videoElement.muted = true;
@@ -68,11 +68,11 @@ const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlaying
       videoElement.play().catch(error => {
         log.error("Error auto-playing stream:", error);
       });
-    } else if (!stream && currentMode === 'idle') {
+    } else if (!stream) {
       log.log("Clearing video element stream");
       videoElement.srcObject = null;
     }
-  }, [stream, currentMode]);
+  }, [stream]);
 
   useEffect(() => {
     const videoElement = videoRef.current;

@@ -7,6 +7,7 @@ export const useRecordingTimer = (maxDuration: number = 30, onTimeExpired?: () =
   const [timeLeft, setTimeLeft] = useState(maxDuration);
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
+  const elapsedTimeRef = useRef<number>(0); // Track total elapsed time
 
   useEffect(() => {
     return () => {
@@ -17,12 +18,13 @@ export const useRecordingTimer = (maxDuration: number = 30, onTimeExpired?: () =
   }, []);
 
   const startTimer = () => {
-    log.log("Starting timer with maxDuration:", maxDuration);
+    log.log("Starting timer with maxDuration:", maxDuration, "elapsed:", elapsedTimeRef.current);
     startTimeRef.current = Date.now();
     
     const updateTimer = () => {
-      const elapsed = (Date.now() - (startTimeRef.current || Date.now())) / 1000;
-      const remaining = Math.max(0, maxDuration - elapsed);
+      const currentElapsed = (Date.now() - (startTimeRef.current || Date.now())) / 1000;
+      const totalElapsed = elapsedTimeRef.current + currentElapsed;
+      const remaining = Math.max(0, maxDuration - totalElapsed);
       setTimeLeft(Math.ceil(remaining));
 
       if (remaining <= 0) {
@@ -50,14 +52,22 @@ export const useRecordingTimer = (maxDuration: number = 30, onTimeExpired?: () =
       animationFrameRef.current = null;
     }
     startTimeRef.current = null;
+    elapsedTimeRef.current = 0; // Reset elapsed time on stop
   };
 
   const pauseTimer = () => {
-    log.log("Pausing timer");
+    log.log("Pausing timer at timeLeft:", timeLeft);
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
+    // Save the elapsed time when pausing
+    if (startTimeRef.current) {
+      const currentElapsed = (Date.now() - startTimeRef.current) / 1000;
+      elapsedTimeRef.current += currentElapsed;
+      log.log("Total elapsed time:", elapsedTimeRef.current);
+    }
+    startTimeRef.current = null;
   };
 
   const resetTimer = () => {
