@@ -2,7 +2,7 @@
 
 **Status**: ✅ Configured and ready  
 **Last Updated**: 2025-10-20  
-**Production URL**: https://validate.app.digerstudios.com
+**Production URL**: https://validate.digerstudios.com
 
 ---
 
@@ -16,7 +16,7 @@
 - ✅ Keywords: saas validation, startup, entrepreneur, video pitch, etc.
 - ✅ Author: Diger Studios
 - ✅ Robots: index, follow
-- ✅ Canonical URL: https://validate.app.digerstudios.com
+- ✅ Canonical URL: https://validate.digerstudios.com
 
 #### Open Graph (Facebook/LinkedIn)
 - ✅ og:type: website
@@ -84,7 +84,7 @@
 ```
 User-agent: *
 Allow: /
-Sitemap: https://validate.app.digerstudios.com/sitemap.xml
+Sitemap: https://validate.digerstudios.com/sitemap.xml
 ```
 
 ### 2. sitemap.xml
@@ -131,15 +131,15 @@ Sitemap: https://validate.app.digerstudios.com/sitemap.xml
 ### Google Search Console
 **To Do:**
 1. Visit [Google Search Console](https://search.google.com/search-console)
-2. Add property: https://validate.app.digerstudios.com
+2. Add property: https://validate.digerstudios.com
 3. Verify ownership (DNS or HTML file)
-4. Submit sitemap: https://validate.app.digerstudios.com/sitemap.xml
+4. Submit sitemap: https://validate.digerstudios.com/sitemap.xml
 5. Request indexing for homepage
 
 ### Bing Webmaster Tools
 **To Do:**
 1. Visit [Bing Webmaster Tools](https://www.bing.com/webmasters)
-2. Add site: https://validate.app.digerstudios.com
+2. Add site: https://validate.digerstudios.com
 3. Verify ownership
 4. Submit sitemap
 

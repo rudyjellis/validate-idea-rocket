@@ -7,7 +7,7 @@
 **Commit**: `f959bc4`  
 **Date**: 2025-10-20  
 **Status**: All systems operational  
-**Live URL**: [validate.app.digerstudios.com](https://validate.app.digerstudios.com)
+**Live URL**: [validate.digerstudios.com](https://validate.digerstudios.com)
 
 ---
 

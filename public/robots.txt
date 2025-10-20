@@ -1,5 +1,5 @@
 # robots.txt for SaaS Idea Validator
-# https://validate.app.digerstudios.com
+# https://validate.digerstudios.com
 
 User-agent: *
 Allow: /
@@ -9,7 +9,7 @@ Allow: /
 # Disallow: /api/
 
 # Sitemap location
-Sitemap: https://validate.app.digerstudios.com/sitemap.xml
+Sitemap: https://validate.digerstudios.com/sitemap.xml
 
 # Crawl-delay (optional, helps with server load)
 Crawl-delay: 1

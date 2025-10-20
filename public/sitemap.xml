@@ -6,7 +6,7 @@
   
   <!-- Homepage -->
   <url>
-    <loc>https://validate.app.digerstudios.com/</loc>
+    <loc>https://validate.digerstudios.com/</loc>
     <lastmod>2025-10-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -15,7 +15,7 @@
   <!-- Add more pages as they are created -->
   <!-- Example:
   <url>
-    <loc>https://validate.app.digerstudios.com/about</loc>
+    <loc>https://validate.digerstudios.com/about</loc>
     <lastmod>2025-10-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

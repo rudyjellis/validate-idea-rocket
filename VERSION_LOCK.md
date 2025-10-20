@@ -3,7 +3,7 @@
 **Last Verified Working State**: 2025-10-20  
 **Git Commit**: `3ee0604` - feat: add comprehensive test suite and fix camera permissions  
 **Status**: ✅ All systems operational  
-**Production URL**: [validate.app.digerstudios.com](https://validate.app.digerstudios.com)
+**Production URL**: [validate.digerstudios.com](https://validate.digerstudios.com)
 
 ---
 

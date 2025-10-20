@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.1",
   "type": "module",
-  "homepage": "https://validate.app.digerstudios.com",
+  "homepage": "https://validate.digerstudios.com",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

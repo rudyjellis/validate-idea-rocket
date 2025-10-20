@@ -4,7 +4,7 @@
 **Tag**: v0.1.1-stable  
 **Commit**: 3f09787  
 **Previous Version**: v0.1.0-stable  
-**Live URL**: [validate.app.digerstudios.com](https://validate.app.digerstudios.com)
+**Live URL**: [validate.digerstudios.com](https://validate.digerstudios.com)
 
 ---
 

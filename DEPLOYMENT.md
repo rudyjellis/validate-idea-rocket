@@ -2,7 +2,7 @@
 
 ## Production Environment
 
-**Live URL**: [validate.app.digerstudios.com](https://validate.app.digerstudios.com)  
+**Live URL**: [validate.digerstudios.com](https://validate.digerstudios.com)  
 **Current Version**: v0.1.1-stable  
 **Last Deployed**: 2025-10-20  
 **Status**: ✅ Live and operational
@@ -166,7 +166,7 @@ Before deploying a new version:
 ## Contact Information
 
 **Repository**: https://github.com/rudyjellis/validate-idea-rocket  
-**Production URL**: https://validate.app.digerstudios.com  
+**Production URL**: https://validate.digerstudios.com  
 **Documentation**: See README.md and version lock files
 
 ---
