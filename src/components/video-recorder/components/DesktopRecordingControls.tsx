@@ -116,7 +116,7 @@ const DesktopRecordingControls = ({
           </>
         )}
         
-        {hasRecording && !isPlayingBack && (
+        {hasRecording && (
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
