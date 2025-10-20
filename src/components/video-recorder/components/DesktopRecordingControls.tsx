@@ -1,12 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Video, StopCircle, Pause, Play, Download } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -117,28 +111,12 @@ const DesktopRecordingControls = ({
         )}
         
         {hasRecording && (
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="shadow-sm">
-                    <Download className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Download Recording</p>
-              </TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => onDownload('webm')}>
-                Download as WebM
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDownload('mp4')}>
-                Download as MP4
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          renderControlButton(
+            () => onDownload('mp4'),
+            <Download className="h-5 w-5" />,
+            "Download MP4",
+            "outline"
+          )
         )}
       </div>
     </TooltipProvider>
