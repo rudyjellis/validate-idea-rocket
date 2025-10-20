@@ -5,7 +5,7 @@
 
 type LogLevel = 'log' | 'warn' | 'error' | 'info' | 'debug';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
 
 export const logger = {
   log: (...args: any[]) => {

@@ -51,27 +51,35 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
       log.log("Setting up video element time tracking");
       const videoElement = ref as React.RefObject<HTMLVideoElement>;
       
-      if (!videoElement?.current) {
-        log.log("No video element found");
+      if (!videoElement?.current || typeof videoElement.current.addEventListener !== 'function') {
+        log.log("No video element found or addEventListener not available");
         return;
       }
 
       const handleTimeUpdate = () => {
-        if (!videoElement.current) {
-          log.log("Video element null in handleTimeUpdate");
+        if (!videoElement.current || typeof videoElement.current.addEventListener !== 'function') {
+          log.log("Video element null or invalid in handleTimeUpdate");
           return;
         }
         const newTime = videoElement.current.currentTime;
         setCurrentTime(newTime);
       };
 
-      videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
+      try {
+        videoElement.current.addEventListener('timeupdate', handleTimeUpdate);
+      } catch (error) {
+        log.error("Error adding timeupdate listener:", error);
+      }
 
       // Cleanup function
       return () => {
         log.log("Cleaning up time tracking");
-        if (videoElement.current) {
-          videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
+        if (videoElement.current && typeof videoElement.current.removeEventListener === 'function') {
+          try {
+            videoElement.current.removeEventListener('timeupdate', handleTimeUpdate);
+          } catch (error) {
+            log.error("Error removing timeupdate listener:", error);
+          }
         }
       };
     }, [ref]);
