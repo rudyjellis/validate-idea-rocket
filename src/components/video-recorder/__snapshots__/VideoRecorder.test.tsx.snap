@@ -1,0 +1,57 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`VideoRecorder Component > Desktop Mode > matches desktop snapshot 1`] = `
+<div
+  class="
+          flex 
+          flex-col 
+           
+          transform-gpu
+        "
+>
+  <div
+    class="
+            w-full 
+            max-w-4xl mx-auto
+            transition-all 
+            duration-300 
+            ease-in-out
+          "
+  >
+    <div
+      data-max-duration="30"
+      data-testid="desktop-video-recorder"
+    >
+      Desktop Video Recorder
+    </div>
+  </div>
+</div>
+`;
+
+exports[`VideoRecorder Component > Mobile Mode > matches mobile snapshot 1`] = `
+<div
+  class="
+          flex 
+          flex-col 
+          h-[100dvh] 
+          transform-gpu
+        "
+>
+  <div
+    class="
+            w-full 
+            flex-1 relative
+            transition-all 
+            duration-300 
+            ease-in-out
+          "
+  >
+    <div
+      data-max-duration="30"
+      data-testid="mobile-video-recorder"
+    >
+      Mobile Video Recorder
+    </div>
+  </div>
+</div>
+`;
