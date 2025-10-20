@@ -1,8 +1,9 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.1",
   "type": "module",
+  "homepage": "https://validate.app.digerstudios.com",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

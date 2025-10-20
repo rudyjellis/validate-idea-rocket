@@ -2,6 +2,8 @@
 
 A mobile-first tool to help solopreneurs and first-time entrepreneurs validate their SaaS ideas through video pitches, landing pages, and user feedback, with a goal of collecting meaningful feedback from 25+ unconnected potential users.
 
+**Live Demo**: [validate.app.digerstudios.com](https://validate.app.digerstudios.com)
+
 ## Development Roadmap
 
 ### Phase 1: Setup & Core Infrastructure (Days 1-3)
@@ -128,6 +130,10 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
 
 ## Getting Started
 
+### Try it Live
+Visit [validate.app.digerstudios.com](https://validate.app.digerstudios.com) to try the app.
+
+### Local Development
 1. Clone the repository
 2. Install dependencies: `npm install`
 3. Set up environment variables

@@ -3,7 +3,8 @@
 **Release Date**: 2025-10-20  
 **Tag**: v0.1.1-stable  
 **Commit**: 3f09787  
-**Previous Version**: v0.1.0-stable
+**Previous Version**: v0.1.0-stable  
+**Live URL**: [validate.app.digerstudios.com](https://validate.app.digerstudios.com)
 
 ---
 

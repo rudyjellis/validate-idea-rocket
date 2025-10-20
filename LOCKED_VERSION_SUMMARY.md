@@ -6,7 +6,8 @@
 **Git Tag**: `v0.1.0-stable`  
 **Commit**: `f959bc4`  
 **Date**: 2025-10-20  
-**Status**: All systems operational
+**Status**: All systems operational  
+**Live URL**: [validate.app.digerstudios.com](https://validate.app.digerstudios.com)
 
 ---
 
