@@ -135,6 +135,12 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
               isMobile={isMobile}
             />
             
+            {/* Recording Timer - Elapsed time display */}
+            <RecordingTimer
+              isRecording={recordingState === 'recording' || recordingState === 'paused'}
+              isPaused={recordingState === 'paused'}
+            />
+            
             {/* Simple Recording Indicator */}
             <SimpleRecordingIndicator
               recordingState={recordingState}
