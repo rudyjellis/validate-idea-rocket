@@ -35,22 +35,16 @@ export const useMediaStream = () => {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
-      if (videoRef.current && videoRef.current instanceof HTMLVideoElement) {
+      if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Remove problematic setAttribute calls for now
+        // videoRef.current.setAttribute('playsinline', '');
+        // videoRef.current.setAttribute('webkit-playsinline', 'true');
         
-        // Safely set attributes
-        if (typeof videoRef.current.setAttribute === 'function') {
-          videoRef.current.setAttribute('playsinline', '');
-          videoRef.current.setAttribute('webkit-playsinline', 'true');
-        }
-        
-        // Safely play video
-        if (typeof videoRef.current.play === 'function') {
-          try {
-            await videoRef.current.play();
-          } catch (playError) {
-            console.warn("Video play failed:", playError);
-          }
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.warn("Video play failed:", playError);
         }
       }
 

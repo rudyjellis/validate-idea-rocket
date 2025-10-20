@@ -124,7 +124,8 @@ const VideoPreview = forwardRef<HTMLVideoElement, VideoPreviewProps>(
           >
             <VideoElement 
               ref={ref} 
-              isPlayingBack={isPlayingBack} 
+              isPlayingBack={isPlayingBack}
+              currentMode={recordingState === 'idle' ? 'idle' : 'stream'}
             />
             
             {/* Simple Recording Indicator */}

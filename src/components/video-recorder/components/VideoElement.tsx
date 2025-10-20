@@ -65,26 +65,16 @@ const VideoElement = forwardRef<VideoElementRef, VideoElementProps>(({ isPlaying
     }
   }, []);
 
-  // Handle mode-specific attributes
+  // Simplified mode handling - let the stream handle most of this
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
-    switch (currentMode) {
-      case 'stream':
-        videoElement.muted = true;
-        videoElement.autoplay = true;
-        break;
-      case 'playback':
-        videoElement.muted = !isPlayingBack;
-        videoElement.autoplay = false;
-        break;
-      case 'idle':
-        videoElement.pause();
-        videoElement.currentTime = 0;
-        break;
+    if (currentMode === 'idle') {
+      videoElement.pause();
+      videoElement.currentTime = 0;
     }
-  }, [currentMode, isPlayingBack]);
+  }, [currentMode]);
 
   return (
     <div className="relative w-full h-full bg-black">
