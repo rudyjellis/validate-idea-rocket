@@ -7,11 +7,13 @@ interface DesktopControlsProps {
   recordingState: RecordingState;
   currentTime: number;
   isPlayingBack?: boolean;
+  hasRecording?: boolean;
   onStopPlayback?: () => void;
   onTapToStop?: () => void;
   onTapToPause?: () => void;
   onTapToResume?: () => void;
   onPlayback?: () => void;
+  onStartRecording?: () => void;
   onDownload?: (format: 'webm' | 'mp4') => void;
 }
 
@@ -19,11 +21,13 @@ const DesktopControls = ({
   recordingState,
   currentTime,
   isPlayingBack,
+  hasRecording = false,
   onStopPlayback,
   onTapToStop,
   onTapToPause,
   onTapToResume,
   onPlayback,
+  onStartRecording,
   onDownload,
 }: DesktopControlsProps) => {
   return (
@@ -41,13 +45,13 @@ const DesktopControls = ({
       )}
       <RecordingControls
         recordingState={recordingState}
-        onStartRecording={() => {}}
-        onStopRecording={onTapToStop!}
+        onStartRecording={onStartRecording || (() => {})}
+        onStopRecording={onTapToStop || (() => {})}
         onPauseRecording={onTapToPause}
         onResumeRecording={onTapToResume}
-        onDownload={onDownload!}
-        onPlayback={onPlayback!}
-        hasRecording={true}
+        onDownload={onDownload || (() => {})}
+        onPlayback={onPlayback || (() => {})}
+        hasRecording={hasRecording}
         isPlayingBack={isPlayingBack}
       />
     </>

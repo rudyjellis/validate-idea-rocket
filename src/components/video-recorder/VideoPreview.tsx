@@ -25,6 +25,7 @@ interface VideoPreviewProps {
   onPlayback?: () => void;
   onStopPlayback?: () => void;
   onDownload?: (format: 'webm' | 'mp4') => void;
+  onStartRecording?: () => void;
 }
 
 const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
@@ -41,7 +42,8 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
     onTapToResume,
     onPlayback,
     onStopPlayback,
-    onDownload
+    onDownload,
+    onStartRecording
   }, ref) => {
     // State management with descriptive names
     const [currentTime, setCurrentTime] = useState<number>(0);
@@ -137,11 +139,13 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
                 recordingState={recordingState}
                 currentTime={currentTime}
                 isPlayingBack={isPlayingBack}
+                hasRecording={hasRecording}
                 onStopPlayback={onStopPlayback}
                 onTapToStop={onTapToStop}
                 onTapToPause={onTapToPause}
                 onTapToResume={onTapToResume}
                 onPlayback={onPlayback}
+                onStartRecording={onStartRecording}
                 onDownload={onDownload}
               />
             )}

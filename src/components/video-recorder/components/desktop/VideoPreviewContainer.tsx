@@ -14,6 +14,10 @@ interface VideoPreviewContainerProps {
   onPlayback: () => void;
   onStopPlayback: () => void;
   onDownload: (format: 'webm' | 'mp4') => void;
+  onStartRecording?: () => void;
+  onTapToStop?: () => void;
+  onTapToPause?: () => void;
+  onTapToResume?: () => void;
 }
 
 const VideoPreviewContainer = ({
@@ -27,6 +31,10 @@ const VideoPreviewContainer = ({
   onPlayback,
   onStopPlayback,
   onDownload,
+  onStartRecording,
+  onTapToStop,
+  onTapToPause,
+  onTapToResume,
 }: VideoPreviewContainerProps) => {
   return (
     <div className="mt-4 relative aspect-video bg-black rounded-lg overflow-hidden">
@@ -41,9 +49,14 @@ const VideoPreviewContainer = ({
         recordingState={recordingState}
         isPlayingBack={isPlayingBack}
         currentStream={currentStream}
+        hasRecording={recordedChunks.length > 0}
         onPlayback={recordedChunks.length > 0 ? onPlayback : undefined}
         onStopPlayback={onStopPlayback}
         onDownload={onDownload}
+        onStartRecording={onStartRecording}
+        onTapToStop={onTapToStop}
+        onTapToPause={onTapToPause}
+        onTapToResume={onTapToResume}
       />
     </div>
   );

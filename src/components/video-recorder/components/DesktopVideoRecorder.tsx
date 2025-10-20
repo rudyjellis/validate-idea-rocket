@@ -61,6 +61,10 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
         onPlayback={handlePlayback}
         onStopPlayback={handleStopPlayback}
         onDownload={handleDownload}
+        onStartRecording={handleStartRecording}
+        onTapToStop={stopRecording}
+        onTapToPause={pauseRecording}
+        onTapToResume={resumeRecording}
       />
 
       <div className="mt-4">
