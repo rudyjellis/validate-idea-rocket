@@ -23,7 +23,9 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     selectedCamera,
     setSelectedCamera,
     initializeStream,
+    handleStartRecording,
     pauseRecording,
+    resumeRecording,
     stopRecording,
     handleDownload,
     toast,
@@ -79,6 +81,11 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           recordingState={recordingState}
           isPlayingBack={isPlayingBack}
           currentStream={currentStream}
+          onTapToRecord={handleStartRecording}
+          onTapToPause={pauseRecording}
+          onTapToResume={resumeRecording}
+          onTapToStop={stopRecording}
+          onDownload={handleDownload}
         />
       </div>
 

@@ -55,12 +55,31 @@ const MobileControls = ({
 
       {recordingState === "paused" && (
         <>
-          <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10">
+          <div className="absolute top-6 left-6 bg-black/75 text-white px-4 py-2 rounded-full text-base font-medium shadow-lg z-10 pointer-events-none">
             Tap to Resume
           </div>
           <div
-            className="absolute inset-0 bg-black/50 cursor-pointer"
-            onClick={onTapToResume}
+            role="button"
+            tabIndex={0}
+            aria-label="Resume recording"
+            className="absolute inset-0 bg-black/50 cursor-pointer touch-none"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onTapToResume?.();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onTapToResume?.();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onTapToResume?.();
+              }
+            }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           />
         </>
       )}
