@@ -62,7 +62,12 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
   const handleDownload = useCallback((format: "webm" | "mp4") => {
     log.log("Initiating download with format:", format);
     downloadVideo(format);
-  }, [downloadVideo]);
+    // Reset recording state after download to allow new recording
+    setTimeout(() => {
+      resetRecording();
+      log.log("Recording state reset after download");
+    }, 500);
+  }, [downloadVideo, resetRecording]);
 
   const handlePlayback = useCallback(async () => {
     log.log("Starting playback");
