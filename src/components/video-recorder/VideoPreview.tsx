@@ -8,6 +8,7 @@ import MobileControls from "./components/video-preview/MobileControls";
 import DesktopControls from "./components/video-preview/DesktopControls";
 import SimpleRecordingIndicator from "./components/SimpleRecordingIndicator";
 import CountdownOverlay from "./components/CountdownOverlay";
+import AudioAnalyzerTest from "./components/AudioAnalyzerTest";
 import { createVideoRecorderLogger } from "@/utils/logger";
 
 const log = createVideoRecorderLogger('VideoPreview');
@@ -125,6 +126,12 @@ const VideoPreview = forwardRef<VideoElementRef, VideoPreviewProps>(
             {showCountdown && onCountdownComplete && (
               <CountdownOverlay onComplete={onCountdownComplete} />
             )}
+            
+            {/* Audio Analyzer Test - TEMPORARY */}
+            <AudioAnalyzerTest
+              stream={currentStream}
+              isActive={recordingState === 'recording'}
+            />
             
             {/* Simple Recording Indicator */}
             <SimpleRecordingIndicator
