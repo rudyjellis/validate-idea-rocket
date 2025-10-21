@@ -52,11 +52,14 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('=== GENERATE MVP FUNCTION START ===');
+    console.log('Event body:', event.body);
+    
     // Get API key from environment (server-side only)
     const apiKey = process.env.ANTHROPIC_API_KEY;
     
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY not found in environment');
+      console.error('ERROR: ANTHROPIC_API_KEY not found in environment');
       return {
         statusCode: 500,
         headers: { 'Content-Type': 'application/json' },
@@ -65,11 +68,14 @@ exports.handler = async (event, context) => {
         })
       };
     }
+    console.log('API key found');
 
     // Parse the request body
     const { fileId } = JSON.parse(event.body);
+    console.log('Parsed fileId:', fileId);
     
     if (!fileId) {
+      console.log('ERROR: No file ID provided');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -78,6 +84,34 @@ exports.handler = async (event, context) => {
     }
 
     // Call Anthropic API to generate MVP document
+    console.log('Calling Anthropic Messages API...');
+    console.log('URL:', `${ANTHROPIC_API_BASE}/messages`);
+    console.log('Model:', MODEL);
+    
+    const requestBody = {
+      model: MODEL,
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'document',
+              source: {
+                type: 'file',
+                file_id: fileId
+              }
+            },
+            {
+              type: 'text',
+              text: MVP_PROMPT
+            }
+          ]
+        }
+      ]
+    };
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+    
     const response = await fetch(`${ANTHROPIC_API_BASE}/messages`, {
       method: 'POST',
       headers: {
@@ -86,32 +120,17 @@ exports.handler = async (event, context) => {
         'anthropic-beta': 'files-api-2025-04-14',
         'content-type': 'application/json'
       },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 4096,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'document',
-                source: {
-                  type: 'file',
-                  file_id: fileId
-                }
-              },
-              {
-                type: 'text',
-                text: MVP_PROMPT
-              }
-            ]
-          }
-        ]
-      })
+      body: JSON.stringify(requestBody)
     });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', JSON.stringify([...response.headers.entries()]));
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('=== ANTHROPIC API ERROR ===');
+      console.error('Status:', response.status);
+      console.error('Error text:', errorText);
       console.error('Anthropic API error:', response.status, errorText);
       
       let errorData;
@@ -131,12 +150,17 @@ exports.handler = async (event, context) => {
     }
 
     const data = await response.json();
+    console.log('=== SUCCESS ===');
+    console.log('Response data keys:', Object.keys(data));
+    console.log('Content blocks:', data.content?.length);
     
     // Extract the text content from Claude's response
     const mvpContent = data.content
       .filter(block => block.type === 'text')
       .map(block => block.text)
       .join('\n\n');
+
+    console.log('MVP content length:', mvpContent.length);
 
     return {
       statusCode: 200,
@@ -149,7 +173,10 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('Generate MVP function error:', error);
+    console.error('=== EXCEPTION CAUGHT ===');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
