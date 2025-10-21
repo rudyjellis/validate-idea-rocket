@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import VideoRecorder from './VideoRecorder';
+import VideoElement from './components/VideoElement';
 
 // Mock logger
 vi.mock('@/utils/logger', () => ({
   createVideoRecorderLogger: () => ({
     log: vi.fn(),
     error: vi.fn(),
+    warn: vi.fn(),
   }),
 }));
 
@@ -14,6 +16,14 @@ vi.mock('@/utils/logger', () => ({
 const mockUseIsMobile = vi.fn();
 vi.mock('@/hooks/use-mobile', () => ({
   useIsMobile: () => mockUseIsMobile(),
+}));
+
+const mockUploadAndGenerateMVP = vi.fn();
+vi.mock('@/hooks/useVideoUpload', () => ({
+  useVideoUpload: () => ({
+    uploadAndGenerateMVP: mockUploadAndGenerateMVP,
+    uploadStatus: 'idle',
+  }),
 }));
 
 describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
@@ -159,38 +169,32 @@ describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
 
   describe('Playback - No Black Screen', () => {
     it('should display recorded video during playback', async () => {
-      const { container } = render(<VideoRecorder />);
+      createObjectURLSpy.mockClear();
+
+      const mockBlob = new Blob(['video data'], { type: 'video/webm' });
+
+      const { rerender, container } = render(
+        <VideoElement
+          stream={mockStream}
+          currentMode="stream"
+          isPlayingBack={false}
+        />
+      );
+
+      rerender(
+        <VideoElement
+          stream={null}
+          currentMode="playback"
+          isPlayingBack
+          recordedBlob={mockBlob}
+        />
+      );
 
       await waitFor(() => {
-        const video = container.querySelector('video') as HTMLVideoElement;
-        expect(video.srcObject).toBeTruthy();
+        expect(createObjectURLSpy).toHaveBeenCalledWith(mockBlob);
       });
 
       const video = container.querySelector('video') as HTMLVideoElement;
-
-      // Simulate recording completion with chunks
-      const mockChunks = [
-        new Blob(['video data 1'], { type: 'video/webm' }),
-        new Blob(['video data 2'], { type: 'video/webm' }),
-      ];
-
-      // Trigger onstop callback
-      if (mockMediaRecorder.onstop) {
-        mockMediaRecorder.onstop();
-      }
-
-      // Simulate playback mode
-      const mockBlob = new Blob(mockChunks, { type: 'video/webm' });
-
-      // When playback starts, blob URL should be created
-      await waitFor(() => {
-        // In real scenario, this would be triggered by play button
-        // For test, we verify the mechanism exists
-        expect(createObjectURLSpy).toBeDefined();
-      });
-
-      // Verify playback setup prevents black screen
-      // Video should have either srcObject (stream) or src (blob URL)
       const hasVideoSource = video.srcObject !== null || video.src !== '';
       expect(hasVideoSource).toBe(true);
     });
@@ -319,21 +323,31 @@ describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
 
   describe('Memory Leak Prevention', () => {
     it('should cleanup blob URLs on unmount', async () => {
-      const { container, unmount } = render(<VideoRecorder />);
+      const mockBlob = new Blob(['video data'], { type: 'video/webm' });
+
+      createObjectURLSpy.mockClear();
+      createObjectURLSpy.mockReturnValue('blob:test-cleanup');
+
+      const { unmount } = render(
+        <VideoElement
+          stream={null}
+          currentMode="playback"
+          isPlayingBack
+          recordedBlob={mockBlob}
+        />
+      );
 
       await waitFor(() => {
-        const video = container.querySelector('video') as HTMLVideoElement;
-        expect(video).toBeInTheDocument();
+        expect(createObjectURLSpy).toHaveBeenCalledWith(mockBlob);
       });
 
-      // Simulate blob URL creation
-      createObjectURLSpy.mockReturnValue('blob:test-cleanup');
+      revokeObjectURLSpy.mockClear();
 
       unmount();
 
-      // Cleanup should be called (handled by VideoElement)
-      // This test verifies the mechanism exists
-      expect(revokeObjectURLSpy).toBeDefined();
+      await waitFor(() => {
+        expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:test-cleanup');
+      });
     });
 
     it('should stop media tracks on unmount', async () => {
