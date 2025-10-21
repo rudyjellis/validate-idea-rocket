@@ -2,6 +2,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import DesktopRecordingControls from "./components/DesktopRecordingControls";
 import MobileRecordingControls from "./components/MobileRecordingControls";
 import type { RecordingState } from "./types";
+import type { UploadStatus } from "@/hooks/useVideoUpload";
 
 interface RecordingControlsProps {
   recordingState: RecordingState;
@@ -13,6 +14,8 @@ interface RecordingControlsProps {
   onPlayback: () => void;
   onStopPlayback?: () => void;
   onRestart?: () => void;
+  onUpload?: () => void;
+  uploadStatus?: UploadStatus;
   hasRecording: boolean;
   isPlayingBack?: boolean;
   onTapToPause?: () => void;

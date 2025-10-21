@@ -1,6 +1,7 @@
 import CameraSelector from "../CameraSelector";
 import RecordingControls from "../RecordingControls";
 import { useRecorderLogic } from "../hooks/useRecorderLogic";
+import { useVideoUpload } from "@/hooks/useVideoUpload";
 import CameraInitializerFixed from "./CameraInitializerFixed";
 import VideoPreviewContainer from "./desktop/VideoPreviewContainer";
 import CameraDebugInfo from "./CameraDebugInfo";
@@ -33,6 +34,12 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     initializeStream,
     showCountdown,
   } = useRecorderLogic({ maxDuration });
+
+  const { uploadAndGenerateMVP, uploadStatus } = useVideoUpload();
+
+  const handleUpload = () => {
+    uploadAndGenerateMVP(recordedChunks);
+  };
 
 
   return (
@@ -83,6 +90,8 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           onRestart={restartRecording}
           onDownload={handleDownload}
           onPlayback={handlePlayback}
+          onUpload={handleUpload}
+          uploadStatus={uploadStatus}
           hasRecording={recordedChunks.length > 0}
           isPlayingBack={isPlayingBack}
         />
