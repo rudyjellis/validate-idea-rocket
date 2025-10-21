@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+// This file intentionally exports both the ErrorBoundary component and useErrorHandler hook
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 
