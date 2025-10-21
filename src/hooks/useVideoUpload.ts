@@ -1,19 +1,20 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { uploadVideoFile, generateMVPDocument, AnthropicAPIError } from '@/services/anthropic';
+import { generateMVPDocument, AnthropicAPIError } from '@/services/anthropic';
+import { transcribeVideoWithProgress, TranscriptionError, isWebSpeechSupported } from '@/services/transcription';
 
-export type UploadStatus = 'idle' | 'uploading' | 'analyzing' | 'success' | 'error';
+export type UploadStatus = 'idle' | 'transcribing' | 'analyzing' | 'success' | 'error';
 
 export interface UploadProgress {
-  stage: 'uploading' | 'analyzing';
+  stage: 'transcribing' | 'analyzing';
   percentage: number;
   message: string;
 }
 
 export interface MVPDocument {
   content: string;
-  fileId: string;
+  transcript: string;
   createdAt: string;
 }
 
@@ -40,10 +41,22 @@ export function useVideoUpload() {
       return;
     }
 
-    setUploadStatus('uploading');
+    // Check browser support
+    if (!isWebSpeechSupported()) {
+      setError('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      setUploadStatus('error');
+      toast({
+        variant: "destructive",
+        title: "Browser Not Supported",
+        description: "Please use Chrome or Edge for speech recognition.",
+      });
+      return;
+    }
+
+    setUploadStatus('transcribing');
     setError(null);
     setProgress({
-      stage: 'uploading',
+      stage: 'transcribing',
       percentage: 0,
       message: 'Converting video...'
     });
@@ -54,22 +67,28 @@ export function useVideoUpload() {
       const videoBlob = new Blob(recordedChunks, { type: mimeType });
       
       setProgress({
-        stage: 'uploading',
+        stage: 'transcribing',
         percentage: 20,
-        message: 'Uploading video to Anthropic...'
+        message: 'Transcribing your pitch...'
       });
 
-      // Upload video file
-      const fileId = await uploadVideoFile(videoBlob);
+      // Transcribe video using Web Speech API
+      const transcript = await transcribeVideoWithProgress(videoBlob, (status) => {
+        setProgress({
+          stage: 'transcribing',
+          percentage: 40,
+          message: status
+        });
+      });
       
       setProgress({
         stage: 'analyzing',
         percentage: 60,
-        message: 'Claude is analyzing your video...'
+        message: 'Claude is analyzing your pitch...'
       });
 
-      // Generate MVP document
-      const mvpContent = await generateMVPDocument(fileId);
+      // Generate MVP document from transcript
+      const mvpContent = await generateMVPDocument(transcript);
       
       setProgress({
         stage: 'analyzing',
@@ -79,7 +98,7 @@ export function useVideoUpload() {
 
       const document: MVPDocument = {
         content: mvpContent,
-        fileId,
+        transcript,
         createdAt: new Date().toISOString()
       };
 
@@ -97,11 +116,21 @@ export function useVideoUpload() {
       });
 
     } catch (err) {
-      console.error('Upload and MVP generation failed:', err);
+      console.error('Transcription and MVP generation failed:', err);
       
       let errorMessage = 'An unexpected error occurred. Please try again.';
       
-      if (err instanceof AnthropicAPIError) {
+      if (err instanceof TranscriptionError) {
+        if (err.code === 'UNSUPPORTED_BROWSER') {
+          errorMessage = 'Speech recognition is not supported in this browser. Please use Chrome or Edge.';
+        } else if (err.code === 'NO_SPEECH') {
+          errorMessage = 'No speech detected in the video. Please ensure your microphone is working and try again.';
+        } else if (err.code === 'PERMISSION_DENIED') {
+          errorMessage = 'Microphone permission denied. Please allow microphone access and try again.';
+        } else {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof AnthropicAPIError) {
         errorMessage = err.message;
       } else if (err instanceof Error) {
         errorMessage = err.message;
@@ -112,7 +141,7 @@ export function useVideoUpload() {
       
       toast({
         variant: "destructive",
-        title: "Upload Failed",
+        title: "Processing Failed",
         description: errorMessage,
       });
     } finally {

@@ -71,15 +71,15 @@ exports.handler = async (event, context) => {
     console.log('API key found');
 
     // Parse the request body
-    const { fileId } = JSON.parse(event.body);
-    console.log('Parsed fileId:', fileId);
+    const { transcript } = JSON.parse(event.body);
+    console.log('Parsed transcript length:', transcript ? transcript.length : 0);
     
-    if (!fileId) {
-      console.log('ERROR: No file ID provided');
+    if (!transcript) {
+      console.log('ERROR: No transcript provided');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'No file ID provided' })
+        body: JSON.stringify({ error: 'No transcript provided' })
       };
     }
 
@@ -94,19 +94,7 @@ exports.handler = async (event, context) => {
       messages: [
         {
           role: 'user',
-          content: [
-            {
-              type: 'document',
-              source: {
-                type: 'file',
-                file_id: fileId
-              }
-            },
-            {
-              type: 'text',
-              text: MVP_PROMPT
-            }
-          ]
+          content: `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`
         }
       ]
     };
@@ -117,7 +105,6 @@ exports.handler = async (event, context) => {
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'files-api-2025-04-14',
         'content-type': 'application/json'
       },
       body: JSON.stringify(requestBody)
