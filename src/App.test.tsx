@@ -41,7 +41,7 @@ describe('App', () => {
 
   it('renders the main route', () => {
     render(<AppWrapper />);
-    const heading = screen.getByRole('heading', { name: /video recorder/i });
+    const heading = screen.getByRole('heading', { name: /pitch the problem you're solving/i });
     expect(heading).toBeInTheDocument();
   });
 
