@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { generateMVPDocument, AnthropicAPIError } from '@/services/anthropic';
-import { transcribeVideoWithProgress, TranscriptionError, isWebSpeechSupported } from '@/services/transcription';
+import { generateMVPDocument, uploadAudioToClaude, AnthropicAPIError } from '@/services/anthropic';
+import { extractAudioWithProgress, AudioExtractionError } from '@/services/audioExtraction';
 
 export type UploadStatus = 'idle' | 'transcribing' | 'analyzing' | 'success' | 'error';
 
@@ -42,55 +42,57 @@ export function useVideoUpload() {
       return;
     }
 
-    // Check browser support
-    if (!isWebSpeechSupported()) {
-      setError('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
-      setUploadStatus('error');
-      toast({
-        variant: "destructive",
-        title: "Browser Not Supported",
-        description: "Please use Chrome or Edge for speech recognition.",
-      });
-      return;
-    }
-
     setUploadStatus('transcribing');
     setError(null);
     setProgress({
       stage: 'transcribing',
       percentage: 0,
-      message: 'Preparing audio for transcription...'
+      message: 'Preparing video for processing...'
     });
 
     try {
       // Convert chunks to a single blob (prefer MP4 format)
       const mimeType = 'video/mp4';
       const videoBlob = new Blob(recordedChunks, { type: mimeType });
-      
+      console.log('Video blob created:', videoBlob.size, 'bytes');
+
       setProgress({
         stage: 'transcribing',
-        percentage: 20,
-        message: 'Transcribing your pitch...'
+        percentage: 15,
+        message: 'Extracting audio from video...'
       });
 
-      // Transcribe video using Web Speech API
-      const transcript = await transcribeVideoWithProgress(videoBlob, (status) => {
+      // Extract audio from video
+      const audioBlob = await extractAudioWithProgress(videoBlob, (status) => {
         setProgress({
           stage: 'transcribing',
-          percentage: 40,
+          percentage: 25,
           message: status
         });
       });
-      
+
+      console.log('Audio extracted:', audioBlob.size, 'bytes');
+
+      setProgress({
+        stage: 'transcribing',
+        percentage: 40,
+        message: 'Uploading audio to Claude...'
+      });
+
+      // Upload audio to Claude and get file ID
+      const fileId = await uploadAudioToClaude(audioBlob);
+      console.log('Audio uploaded, file ID:', fileId);
+
       setProgress({
         stage: 'analyzing',
         percentage: 60,
-        message: 'Sending transcript to Claude...'
+        message: 'Claude is transcribing and analyzing your pitch...'
       });
 
-      // Generate MVP document from transcript
-      const mvpContent = await generateMVPDocument(transcript);
-      
+      // Generate MVP document using the audio file
+      // Claude will transcribe and analyze the audio in one step
+      const mvpContent = await generateMVPDocument(undefined, fileId);
+
       setProgress({
         stage: 'analyzing',
         percentage: 100,
@@ -100,17 +102,17 @@ export function useVideoUpload() {
       const now = new Date();
       const document: MVPDocument = {
         content: mvpContent,
-        transcript,
+        transcript: 'Audio processed directly by Claude', // We don't have a separate transcript
         createdAt: now.toISOString(),
-        transcriptFileName: `pitch-transcript-${now.toISOString().split('T')[0]}.txt`
+        transcriptFileName: `pitch-analysis-${now.toISOString().split('T')[0]}.txt`
       };
 
       setMvpDocument(document);
       setUploadStatus('success');
 
       // Navigate to results page with the document
-      navigate('/mvp-results', { 
-        state: { mvpDocument: document } 
+      navigate('/mvp-results', {
+        state: { mvpDocument: document }
       });
 
       toast({
@@ -119,19 +121,17 @@ export function useVideoUpload() {
       });
 
     } catch (err) {
-      console.error('Transcription and MVP generation failed:', err);
-      
+      console.error('Audio processing and MVP generation failed:', err);
+
       let errorMessage = 'An unexpected error occurred. Please try again.';
-      
-      if (err instanceof TranscriptionError) {
-        if (err.code === 'UNSUPPORTED_BROWSER') {
-          errorMessage = 'Speech recognition is not supported in this browser. Please use Chrome or Edge.';
-        } else if (err.code === 'NO_SPEECH') {
-          errorMessage = 'No speech detected in the video. Please ensure your microphone is working and try again.';
-        } else if (err.code === 'PERMISSION_DENIED') {
-          errorMessage = 'Microphone permission denied. Please allow microphone access and try again.';
+
+      if (err instanceof AudioExtractionError) {
+        if (err.code === 'INVALID_BLOB') {
+          errorMessage = 'Invalid video recording. Please try recording again.';
+        } else if (err.code === 'DECODE_FAILED') {
+          errorMessage = 'Failed to process video audio. The video format may be unsupported.';
         } else {
-          errorMessage = err.message;
+          errorMessage = `Audio extraction failed: ${err.message}`;
         }
       } else if (err instanceof AnthropicAPIError) {
         errorMessage = err.message;
@@ -141,7 +141,7 @@ export function useVideoUpload() {
 
       setError(errorMessage);
       setUploadStatus('error');
-      
+
       toast({
         variant: "destructive",
         title: "Processing Failed",

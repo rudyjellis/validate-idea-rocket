@@ -1,5 +1,14 @@
-// Video transcription service using Web Speech API
-// Future: Can be extended to support OpenAI Whisper API
+// ⚠️ DEPRECATED: This Web Speech API implementation has been replaced
+// The new audio processing flow uses:
+// 1. audioExtraction.ts - Extracts audio from video
+// 2. anthropic.ts (uploadAudioToClaude) - Uploads audio to Claude
+// 3. Claude's native audio processing - Transcribes and analyzes in one step
+//
+// This file is kept for reference and potential fallback scenarios
+// See: src/hooks/useVideoUpload.ts for the current implementation
+//
+// Previous approach: Web Speech API (unreliable for pre-recorded audio)
+// Current approach: Claude native audio processing (more reliable + context-aware)
 
 export class TranscriptionError extends Error {
   constructor(message: string, public code?: string) {
@@ -46,9 +55,19 @@ export async function transcribeVideo(videoBlob: Blob): Promise<string> {
     source.connect(mediaStreamDestination);
     
     // Initialize speech recognition
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
+    interface SpeechRecognitionType {
+      new(): SpeechRecognition;
+    }
+
+    const SpeechRecognitionClass = (window as unknown as { SpeechRecognition?: SpeechRecognitionType; webkitSpeechRecognition?: SpeechRecognitionType }).SpeechRecognition ||
+                                   (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionType }).webkitSpeechRecognition;
+
+    if (!SpeechRecognitionClass) {
+      throw new TranscriptionError('Speech recognition not available', 'UNSUPPORTED_BROWSER');
+    }
+
+    const recognition = new SpeechRecognitionClass();
+
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
@@ -58,10 +77,10 @@ export async function transcribeVideo(videoBlob: Blob): Promise<string> {
       let transcript = '';
       let timeoutId: NodeJS.Timeout;
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         // Clear timeout on each result
         clearTimeout(timeoutId);
-        
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
           if (result.isFinal) {
@@ -75,16 +94,17 @@ export async function transcribeVideo(videoBlob: Blob): Promise<string> {
         }, 2000);
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: Event) => {
+        const error = event as SpeechRecognitionErrorEvent;
         clearTimeout(timeoutId);
         recognition.stop();
-        
-        if (event.error === 'no-speech') {
+
+        if (error.error === 'no-speech') {
           reject(new TranscriptionError('No speech detected in the video', 'NO_SPEECH'));
-        } else if (event.error === 'not-allowed') {
+        } else if (error.error === 'not-allowed') {
           reject(new TranscriptionError('Microphone permission denied', 'PERMISSION_DENIED'));
         } else {
-          reject(new TranscriptionError(`Speech recognition error: ${event.error}`, event.error));
+          reject(new TranscriptionError(`Speech recognition error: ${error.error}`, error.error));
         }
       };
 

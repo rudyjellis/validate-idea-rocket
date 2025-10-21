@@ -54,32 +54,33 @@ exports.handler = async (event, context) => {
   try {
     console.log('=== GENERATE MVP FUNCTION START ===');
     console.log('Event body:', event.body);
-    
+
     // Get API key from environment (server-side only)
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    
+
     if (!apiKey) {
       console.error('ERROR: ANTHROPIC_API_KEY not found in environment');
       return {
         statusCode: 500,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          error: 'Server configuration error. API key not configured.' 
+        body: JSON.stringify({
+          error: 'Server configuration error. API key not configured.'
         })
       };
     }
     console.log('API key found');
 
-    // Parse the request body
-    const { transcript } = JSON.parse(event.body);
+    // Parse the request body - now accepts either transcript or fileId
+    const { transcript, fileId } = JSON.parse(event.body);
     console.log('Parsed transcript length:', transcript ? transcript.length : 0);
-    
-    if (!transcript) {
-      console.log('ERROR: No transcript provided');
+    console.log('File ID:', fileId || 'none');
+
+    if (!transcript && !fileId) {
+      console.log('ERROR: No transcript or fileId provided');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'No transcript provided' })
+        body: JSON.stringify({ error: 'Either transcript or fileId must be provided' })
       };
     }
 
@@ -87,14 +88,38 @@ exports.handler = async (event, context) => {
     console.log('Calling Anthropic Messages API...');
     console.log('URL:', `${ANTHROPIC_API_BASE}/messages`);
     console.log('Model:', MODEL);
-    
+
+    // Build message content based on what we have
+    let messageContent;
+    if (fileId) {
+      // Use audio file directly - Claude will transcribe and analyze
+      console.log('Using file-based processing (audio)');
+      messageContent = [
+        {
+          type: 'document',
+          source: {
+            type: 'url',
+            url: `anthropic://file/${fileId}`
+          }
+        },
+        {
+          type: 'text',
+          text: `Please listen to this audio recording of a startup pitch. First transcribe what you hear, then analyze it according to the following framework:\n\n${MVP_PROMPT}`
+        }
+      ];
+    } else {
+      // Fallback to text transcript
+      console.log('Using text transcript processing');
+      messageContent = `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`;
+    }
+
     const requestBody = {
       model: MODEL,
       max_tokens: 4096,
       messages: [
         {
           role: 'user',
-          content: `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`
+          content: messageContent
         }
       ]
     };
