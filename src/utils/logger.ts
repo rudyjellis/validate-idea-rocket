@@ -8,31 +8,31 @@ type LogLevel = 'log' | 'warn' | 'error' | 'info' | 'debug';
 const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
 
 export const logger = {
-  log: (...args: any[]) => {
+  log: (...args: unknown[]) => {
     if (isDevelopment) {
       console.log(...args);
     }
   },
-  
-  warn: (...args: any[]) => {
+
+  warn: (...args: unknown[]) => {
     if (isDevelopment) {
       console.warn(...args);
     }
   },
-  
-  error: (...args: any[]) => {
+
+  error: (...args: unknown[]) => {
     if (isDevelopment) {
       console.error(...args);
     }
   },
-  
-  info: (...args: any[]) => {
+
+  info: (...args: unknown[]) => {
     if (isDevelopment) {
       console.info(...args);
     }
   },
-  
-  debug: (...args: any[]) => {
+
+  debug: (...args: unknown[]) => {
     if (isDevelopment) {
       console.debug(...args);
     }
@@ -41,31 +41,31 @@ export const logger = {
 
 // For video recorder specific logging with context
 export const createVideoRecorderLogger = (context: string) => ({
-  log: (message: string, ...args: any[]) => {
+  log: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
       console.log(`[${context}] ${message}`, ...args);
     }
   },
-  
-  warn: (message: string, ...args: any[]) => {
+
+  warn: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
       console.warn(`[${context}] ${message}`, ...args);
     }
   },
-  
-  error: (message: string, ...args: any[]) => {
+
+  error: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
       console.error(`[${context}] ${message}`, ...args);
     }
   },
-  
-  info: (message: string, ...args: any[]) => {
+
+  info: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
       console.info(`[${context}] ${message}`, ...args);
     }
   },
-  
-  debug: (message: string, ...args: any[]) => {
+
+  debug: (message: string, ...args: unknown[]) => {
     if (isDevelopment) {
       console.debug(`[${context}] ${message}`, ...args);
     }

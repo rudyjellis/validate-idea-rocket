@@ -47,7 +47,7 @@ export const useAudioAnalyzer = (
 
   // Check Web Audio API support
   useEffect(() => {
-    const supported = !!(window.AudioContext || (window as any).webkitAudioContext);
+    const supported = !!(window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
     setIsSupported(supported);
     
     if (!supported) {
@@ -97,7 +97,7 @@ export const useAudioAnalyzer = (
 
     try {
       // Create AudioContext
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const audioContext = new AudioContextClass();
       audioContextRef.current = audioContext;
 

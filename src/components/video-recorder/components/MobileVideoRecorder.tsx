@@ -68,7 +68,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     };
 
     initCamera();
-  }, [selectedCamera, cameras, setSelectedCamera, initializeStream, toast]);
+  }, [selectedCamera, cameras, setSelectedCamera, initializeStream, toast, setIsInitializing]);
 
   return (
     <div className="relative w-full h-full bg-black">

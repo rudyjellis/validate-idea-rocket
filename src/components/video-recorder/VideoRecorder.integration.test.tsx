@@ -26,9 +26,20 @@ vi.mock('@/hooks/useVideoUpload', () => ({
   }),
 }));
 
+interface MockMediaRecorder {
+  start: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+  pause: ReturnType<typeof vi.fn>;
+  resume: ReturnType<typeof vi.fn>;
+  state: string;
+  ondataavailable: ((event: BlobEvent) => void) | null;
+  onstop: (() => void) | null;
+  mimeType: string;
+}
+
 describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
   let mockStream: MediaStream;
-  let mockMediaRecorder: any;
+  let mockMediaRecorder: MockMediaRecorder;
   let createObjectURLSpy: ReturnType<typeof vi.spyOn>;
   let revokeObjectURLSpy: ReturnType<typeof vi.spyOn>;
 
@@ -55,7 +66,7 @@ describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
       mimeType: 'video/webm',
     };
 
-    global.MediaRecorder = vi.fn().mockImplementation(() => mockMediaRecorder) as any;
+    global.MediaRecorder = vi.fn().mockImplementation(() => mockMediaRecorder) as unknown as typeof MediaRecorder;
 
     // Mock getUserMedia
     global.navigator.mediaDevices = {
@@ -68,7 +79,7 @@ describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
           groupId: 'group1',
         },
       ]),
-    } as any;
+    } as unknown as MediaDevices;
 
     // Mock URL methods
     if (!global.URL.createObjectURL) {
@@ -158,6 +169,7 @@ describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
         id: 'new-stream',
       } as MediaStream;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.navigator.mediaDevices.getUserMedia as any).mockResolvedValue(newStream);
 
       // After camera switch, should have new stream (not black)
@@ -287,6 +299,7 @@ describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
 
   describe('Error Scenarios - Graceful Degradation', () => {
     it('should handle camera permission denial without black screen', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.navigator.mediaDevices.getUserMedia as any).mockRejectedValue(
         new Error('Permission denied')
       );
@@ -306,7 +319,7 @@ describe('VideoRecorder Integration Tests - Black Screen Prevention', () => {
     it('should handle MediaRecorder failure gracefully', async () => {
       global.MediaRecorder = vi.fn().mockImplementation(() => {
         throw new Error('MediaRecorder not supported');
-      }) as any;
+      }) as unknown as typeof MediaRecorder;
 
       const { container } = render(<VideoRecorder />);
 
