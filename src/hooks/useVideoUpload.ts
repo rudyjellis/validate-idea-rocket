@@ -16,6 +16,7 @@ export interface MVPDocument {
   content: string;
   transcript: string;
   createdAt: string;
+  transcriptFileName: string;
 }
 
 export function useVideoUpload() {
@@ -58,7 +59,7 @@ export function useVideoUpload() {
     setProgress({
       stage: 'transcribing',
       percentage: 0,
-      message: 'Converting video...'
+      message: 'Preparing audio for transcription...'
     });
 
     try {
@@ -84,7 +85,7 @@ export function useVideoUpload() {
       setProgress({
         stage: 'analyzing',
         percentage: 60,
-        message: 'Claude is analyzing your pitch...'
+        message: 'Sending transcript to Claude...'
       });
 
       // Generate MVP document from transcript
@@ -96,10 +97,12 @@ export function useVideoUpload() {
         message: 'Analysis complete!'
       });
 
+      const now = new Date();
       const document: MVPDocument = {
         content: mvpContent,
         transcript,
-        createdAt: new Date().toISOString()
+        createdAt: now.toISOString(),
+        transcriptFileName: `pitch-transcript-${now.toISOString().split('T')[0]}.txt`
       };
 
       setMvpDocument(document);

@@ -20,23 +20,26 @@ const UploadButton = ({
   isUploading = false, 
   uploadStatus 
 }: UploadButtonProps) => {
-  const isDisabled = disabled || isUploading || uploadStatus === 'uploading' || uploadStatus === 'analyzing';
-  
+  const isProcessing = uploadStatus === 'transcribing' || uploadStatus === 'analyzing';
+  const isDisabled = disabled || isUploading || isProcessing;
+
   const getTooltipMessage = () => {
     switch (uploadStatus) {
-      case 'uploading':
-        return 'Uploading video...';
+      case 'transcribing':
+        return 'Transcribing your pitch audio...';
       case 'analyzing':
-        return 'Claude 3.5 Haiku is analyzing your video...';
+        return 'Claude 3.5 Haiku is analyzing your transcript...';
       case 'error':
         return 'Upload failed. Click to try again.';
+      case 'success':
+        return 'Transcript analyzed. Generate again?';
       default:
         return 'Generate MVP document with Claude 3.5 Haiku';
     }
   };
 
   const getIcon = () => {
-    if (isUploading || uploadStatus === 'uploading' || uploadStatus === 'analyzing') {
+    if (isUploading || isProcessing) {
       return <Loader2 className="h-5 w-5 animate-spin" />;
     }
     return <Brain className="h-5 w-5" />;
