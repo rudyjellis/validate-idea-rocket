@@ -19,7 +19,11 @@ export function isWebSpeechSupported(): boolean {
  * Extract audio from video blob and transcribe using Web Speech API
  */
 export async function transcribeVideo(videoBlob: Blob): Promise<string> {
+  console.log('🎤 Starting transcription...');
+  console.log('Video blob size:', videoBlob.size, 'type:', videoBlob.type);
+  
   if (!isWebSpeechSupported()) {
+    console.error('❌ Web Speech API not supported');
     throw new TranscriptionError(
       'Speech recognition is not supported in this browser. Please use Chrome or Edge.',
       'UNSUPPORTED_BROWSER'
@@ -27,10 +31,13 @@ export async function transcribeVideo(videoBlob: Blob): Promise<string> {
   }
 
   try {
+    console.log('Creating audio context...');
     // Create audio context to extract audio from video
     const audioContext = new AudioContext();
     const arrayBuffer = await videoBlob.arrayBuffer();
+    console.log('Decoding audio data...');
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    console.log('Audio decoded successfully, duration:', audioBuffer.duration);
     
     // Create a media stream from the audio buffer
     const mediaStreamDestination = audioContext.createMediaStreamDestination();
