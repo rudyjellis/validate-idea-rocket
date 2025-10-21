@@ -49,6 +49,14 @@ const UploadButton = ({
     return 'default' as const;
   };
 
+  const getButtonClassName = () => {
+    if (uploadStatus === 'error') {
+      return 'shadow-sm';
+    }
+    // Anthropic brand color - warm orange/coral
+    return 'shadow-sm bg-[#D97757] hover:bg-[#C86647] text-white';
+  };
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -56,7 +64,7 @@ const UploadButton = ({
           onClick={onUpload}
           variant={getButtonVariant()}
           size="icon"
-          className="shadow-sm"
+          className={getButtonClassName()}
           disabled={isDisabled}
         >
           {getIcon()}

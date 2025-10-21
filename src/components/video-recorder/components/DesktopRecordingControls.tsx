@@ -125,6 +125,12 @@ const DesktopRecordingControls = ({
         
         {hasRecording && (
           <>
+            {renderControlButton(
+              () => onDownload('mp4'),
+              <Download className="h-5 w-5" />,
+              "Download MP4",
+              "outline"
+            )}
             {onUpload && (
               <UploadButton
                 onUpload={onUpload}
@@ -132,12 +138,6 @@ const DesktopRecordingControls = ({
                 isUploading={uploadStatus === 'uploading' || uploadStatus === 'analyzing'}
                 uploadStatus={uploadStatus}
               />
-            )}
-            {renderControlButton(
-              () => onDownload('mp4'),
-              <Download className="h-5 w-5" />,
-              "Download MP4",
-              "outline"
             )}
           </>
         )}
