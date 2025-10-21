@@ -15,7 +15,7 @@ vi.mock('@/hooks/use-mobile', () => ({
 describe('Index Page', () => {
   it('renders the page title', () => {
     render(<Index />);
-    const heading = screen.getByRole('heading', { name: /video recorder/i });
+    const heading = screen.getByRole('heading', { name: /pitch the problem you're solving/i });
     expect(heading).toBeInTheDocument();
   });
 
