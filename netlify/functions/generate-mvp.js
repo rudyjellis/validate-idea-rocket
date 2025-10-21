@@ -98,8 +98,8 @@ exports.handler = async (event, context) => {
         {
           type: 'document',
           source: {
-            type: 'url',
-            url: `anthropic://file/${fileId}`
+            type: 'file',
+            file_id: fileId
           }
         },
         {
