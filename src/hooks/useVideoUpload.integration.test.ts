@@ -20,9 +20,9 @@ vi.mock('@/services/audioExtraction');
 vi.mock('@/services/anthropic');
 
 describe('useVideoUpload - Integration Tests', () => {
-  let mockExtractAudioWithProgress: any;
-  let mockUploadAudioToClaude: any;
-  let mockGenerateMVPDocument: any;
+  let mockExtractAudioWithProgress: ReturnType<typeof vi.spyOn>;
+  let mockUploadAudioToClaude: ReturnType<typeof vi.spyOn>;
+  let mockGenerateMVPDocument: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();

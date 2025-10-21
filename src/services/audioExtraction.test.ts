@@ -1,11 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { extractAudioFromVideo, extractAudioWithProgress, AudioExtractionError } from './audioExtraction';
 
+interface MockAudioBuffer {
+  duration: number;
+  sampleRate: number;
+  numberOfChannels: number;
+  length: number;
+  getChannelData: (channel: number) => Float32Array;
+}
+
+interface MockAudioContext {
+  decodeAudioData: (buffer: ArrayBuffer) => Promise<MockAudioBuffer>;
+  close: () => Promise<void>;
+}
+
 describe('audioExtraction', () => {
   // Mock AudioContext
-  let mockAudioContext: any;
-  let mockAudioBuffer: any;
-  let mockClose: any;
+  let mockAudioContext: MockAudioContext;
+  let mockAudioBuffer: MockAudioBuffer;
+  let mockClose: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     // Mock AudioBuffer
@@ -33,10 +46,10 @@ describe('audioExtraction', () => {
     };
 
     // Mock window.AudioContext
-    (global as any).AudioContext = vi.fn(() => mockAudioContext);
-    (global as any).window = {
+    (global as unknown as { AudioContext: typeof AudioContext }).AudioContext = vi.fn(() => mockAudioContext) as unknown as typeof AudioContext;
+    (global as unknown as { window: Window & typeof globalThis }).window = {
       ...global.window,
-      AudioContext: vi.fn(() => mockAudioContext)
+      AudioContext: vi.fn(() => mockAudioContext) as unknown as typeof AudioContext
     };
 
     // Mock Blob.arrayBuffer for older test environments
@@ -77,6 +90,7 @@ describe('audioExtraction', () => {
     it('should throw error for null blob', async () => {
       // The function checks videoBlob.size, which will throw TypeError for null
       // This is expected behavior - catching and wrapping the error
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(extractAudioFromVideo(null as any)).rejects.toThrow();
     });
 

@@ -3,13 +3,13 @@ import { uploadAudioToClaude, generateMVPDocument, AnthropicAPIError } from './a
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch as any;
+global.fetch = mockFetch as typeof fetch;
 
 // Mock FileReader
 class MockFileReader {
   result: string = 'data:audio/wav;base64,dGVzdGF1ZGlvZGF0YQ==';
   onloadend: (() => void) | null = null;
-  onerror: ((error: any) => void) | null = null;
+  onerror: ((error: unknown) => void) | null = null;
 
   readAsDataURL(blob: Blob) {
     // Immediately trigger onloadend
@@ -21,7 +21,7 @@ class MockFileReader {
   }
 }
 
-global.FileReader = MockFileReader as any;
+global.FileReader = MockFileReader as unknown as typeof FileReader;
 
 describe('anthropic service', () => {
   beforeEach(() => {
@@ -41,6 +41,7 @@ describe('anthropic service', () => {
     });
 
     it('should throw error for null blob', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await expect(uploadAudioToClaude(null as any)).rejects.toThrow();
     });
   });

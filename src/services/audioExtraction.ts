@@ -109,7 +109,8 @@ export async function extractAudioFromVideo(videoBlob: Blob): Promise<Blob> {
   try {
     // Create audio context
     console.log('Creating audio context...');
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    audioContext = new AudioContextClass();
 
     // Convert blob to array buffer
     console.log('Converting video to array buffer...');
