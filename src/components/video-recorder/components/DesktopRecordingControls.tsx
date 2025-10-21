@@ -135,7 +135,7 @@ const DesktopRecordingControls = ({
               <UploadButton
                 onUpload={onUpload}
                 disabled={false}
-                isUploading={uploadStatus === 'uploading' || uploadStatus === 'analyzing'}
+                isUploading={uploadStatus === 'transcribing' || uploadStatus === 'analyzing'}
                 uploadStatus={uploadStatus}
               />
             )}

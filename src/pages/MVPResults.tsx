@@ -9,7 +9,8 @@ import {
   Download, 
   Edit3, 
   Save, 
-  FileText, 
+  FileAudio,
+  FileText,
   Printer,
   Copy,
   Brain
@@ -94,6 +95,24 @@ const MVPResults = () => {
     toast({
       title: "Download Started",
       description: "MVP document downloaded as Markdown file.",
+    });
+  };
+
+  const handleDownloadTranscript = () => {
+    const blob = new Blob([mvpDocument?.transcript ?? ''], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const fallbackName = `pitch-transcript-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = mvpDocument?.transcriptFileName ?? fallbackName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Transcript Ready",
+      description: "Transcript downloaded as a text file.",
     });
   };
 
@@ -210,6 +229,10 @@ const MVPResults = () => {
                     <DropdownMenuItem onClick={handleDownloadMarkdown}>
                       <FileText className="h-4 w-4 mr-2" />
                       Download as Markdown
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadTranscript}>
+                      <FileAudio className="h-4 w-4 mr-2" />
+                      Download transcript (.txt)
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handlePrintPDF}>
                       <Printer className="h-4 w-4 mr-2" />
