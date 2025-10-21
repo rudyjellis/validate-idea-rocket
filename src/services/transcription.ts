@@ -1,5 +1,14 @@
-// Video transcription service using Web Speech API
-// Future: Can be extended to support OpenAI Whisper API
+// ⚠️ DEPRECATED: This Web Speech API implementation has been replaced
+// The new audio processing flow uses:
+// 1. audioExtraction.ts - Extracts audio from video
+// 2. anthropic.ts (uploadAudioToClaude) - Uploads audio to Claude
+// 3. Claude's native audio processing - Transcribes and analyzes in one step
+//
+// This file is kept for reference and potential fallback scenarios
+// See: src/hooks/useVideoUpload.ts for the current implementation
+//
+// Previous approach: Web Speech API (unreliable for pre-recorded audio)
+// Current approach: Claude native audio processing (more reliable + context-aware)
 
 export class TranscriptionError extends Error {
   constructor(message: string, public code?: string) {

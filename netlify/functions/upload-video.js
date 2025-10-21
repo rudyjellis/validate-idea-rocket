@@ -1,5 +1,6 @@
-// Netlify serverless function to securely upload video to Anthropic
+// Netlify serverless function to securely upload video/audio to Anthropic
 // Uses Node 18+ built-in fetch
+// Supports video and audio files (WAV, MP4, WebM, etc.)
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
 const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB
@@ -35,44 +36,52 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Parse the request body (base64 encoded video)
+    // Parse the request body (base64 encoded video or audio)
     console.log('Parsing request body...');
     const { videoData, mimeType } = JSON.parse(event.body);
     console.log('MIME type:', mimeType);
-    console.log('Video data length:', videoData ? videoData.length : 0);
-    
+    console.log('Data length:', videoData ? videoData.length : 0);
+
     if (!videoData) {
-      console.log('ERROR: No video data provided');
+      console.log('ERROR: No file data provided');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'No video data provided' })
+        body: JSON.stringify({ error: 'No file data provided' })
       };
     }
 
     // Convert base64 to buffer
     console.log('Converting base64 to buffer...');
-    const videoBuffer = Buffer.from(videoData, 'base64');
-    const fileSizeMB = (videoBuffer.length / 1024 / 1024).toFixed(2);
+    const fileBuffer = Buffer.from(videoData, 'base64');
+    const fileSizeMB = (fileBuffer.length / 1024 / 1024).toFixed(2);
     console.log('File size:', fileSizeMB, 'MB');
-    
+
     // Check file size
-    if (videoBuffer.length > MAX_FILE_SIZE) {
+    if (fileBuffer.length > MAX_FILE_SIZE) {
       console.log('ERROR: File too large');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          error: `File size (${fileSizeMB}MB) exceeds maximum allowed size of 30MB.` 
+        body: JSON.stringify({
+          error: `File size (${fileSizeMB}MB) exceeds maximum allowed size of 30MB.`
         })
       };
     }
 
+    // Determine file extension based on MIME type
+    const isAudio = mimeType && mimeType.startsWith('audio/');
+    const extension = isAudio ? (mimeType.includes('wav') ? 'wav' : 'mp3') : 'mp4';
+    const fileName = isAudio ? `audio.${extension}` : 'video.mp4';
+
+    console.log('File type:', isAudio ? 'audio' : 'video');
+    console.log('File name:', fileName);
+
     // Create form data using FormData API
     console.log('Creating FormData...');
     const formData = new FormData();
-    const blob = new Blob([videoBuffer], { type: mimeType || 'video/mp4' });
-    formData.append('file', blob, 'video.mp4');
+    const blob = new Blob([fileBuffer], { type: mimeType || 'video/mp4' });
+    formData.append('file', blob, fileName);
     console.log('FormData created successfully');
 
     // Upload to Anthropic
@@ -117,13 +126,15 @@ exports.handler = async (event, context) => {
     const data = await response.json();
     console.log('=== SUCCESS ===');
     console.log('File ID:', data.id);
-    
+    console.log('File type:', isAudio ? 'audio' : 'video');
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         fileId: data.id,
-        message: 'Video uploaded successfully' 
+        message: `${isAudio ? 'Audio' : 'Video'} uploaded successfully`,
+        fileType: isAudio ? 'audio' : 'video'
       })
     };
 
