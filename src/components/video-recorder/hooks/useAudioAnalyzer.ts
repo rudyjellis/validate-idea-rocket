@@ -81,7 +81,7 @@ export const useAudioAnalyzer = (
   // Setup Web Audio API when stream is available and active
   useEffect(() => {
     // Early return if not supported, no stream, or not active
-    if (!isSupported || !stream || !isActive) {
+    if (!isSupported || !stream || !isActive || error) {
       return;
     }
 
@@ -166,7 +166,17 @@ export const useAudioAnalyzer = (
 
       log.log('Audio analyzer cleanup complete');
     };
-  }, [stream, isActive, isSupported, fftSize, smoothingTimeConstant, minDecibels, maxDecibels, updateFrequencyData]);
+  }, [
+    stream,
+    isActive,
+    isSupported,
+    fftSize,
+    smoothingTimeConstant,
+    minDecibels,
+    maxDecibels,
+    error,
+    updateFrequencyData,
+  ]);
 
   return {
     frequencyData,

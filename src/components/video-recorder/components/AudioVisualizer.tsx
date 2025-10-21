@@ -29,6 +29,7 @@ const AudioVisualizer = ({
 }: AudioVisualizerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previousHeightsRef = useRef<number[]>(new Array(barCount).fill(0));
+  const animationFrameRef = useRef<number | null>(null);
 
   // Get frequency data from audio analyzer
   const { frequencyData, isActive: analyzerActive } = useAudioAnalyzer(stream, isActive, {
@@ -113,16 +114,21 @@ const AudioVisualizer = ({
       }
     };
 
-    // Render continuously while active
-    const animationId = requestAnimationFrame(function animate() {
+    const animate = () => {
       render();
+
       if (analyzerActive) {
-        requestAnimationFrame(animate);
+        animationFrameRef.current = requestAnimationFrame(animate);
       }
-    });
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
-      cancelAnimationFrame(animationId);
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
     };
   }, [frequencyData, analyzerActive, barCount, barColor, barGap]);
 
