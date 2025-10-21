@@ -64,7 +64,7 @@ A mobile-first tool to help solopreneurs and first-time entrepreneurs validate t
 - **Authentication**: Supabase Auth
 - **Database**: Supabase
 - **Video Processing**: WebRTC + Cloudinary
-- **Transcription**: Whisper API
+- **Transcription**: Web Speech API (with plans to explore Whisper for enhanced accuracy in future iterations)
 - **Analytics**: Supabase Analytics
 
 ## Key Features
