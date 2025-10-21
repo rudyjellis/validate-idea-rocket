@@ -27,11 +27,11 @@ const UploadButton = ({
       case 'uploading':
         return 'Uploading video...';
       case 'analyzing':
-        return 'Claude is analyzing your video...';
+        return 'Claude 3.5 Sonnet is analyzing your video...';
       case 'error':
         return 'Upload failed. Click to try again.';
       default:
-        return 'Generate MVP document from your video';
+        return 'Generate MVP document with Claude 3.5 Sonnet';
     }
   };
 

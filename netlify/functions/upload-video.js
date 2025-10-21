@@ -1,6 +1,5 @@
 // Netlify serverless function to securely upload video to Anthropic
-const fetch = require('node-fetch');
-const FormData = require('form-data');
+// Uses Node 18+ built-in fetch
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
 const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB
@@ -10,6 +9,7 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
@@ -22,6 +22,7 @@ exports.handler = async (event, context) => {
       console.error('ANTHROPIC_API_KEY not found in environment');
       return {
         statusCode: 500,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           error: 'Server configuration error. API key not configured.' 
         })
@@ -34,6 +35,7 @@ exports.handler = async (event, context) => {
     if (!videoData) {
       return {
         statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'No video data provided' })
       };
     }
@@ -45,18 +47,17 @@ exports.handler = async (event, context) => {
     if (videoBuffer.length > MAX_FILE_SIZE) {
       return {
         statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           error: `File size (${(videoBuffer.length / 1024 / 1024).toFixed(1)}MB) exceeds maximum allowed size of 30MB.` 
         })
       };
     }
 
-    // Create form data
+    // Create form data using FormData API
     const formData = new FormData();
-    formData.append('file', videoBuffer, {
-      filename: 'video.mp4',
-      contentType: mimeType || 'video/mp4'
-    });
+    const blob = new Blob([videoBuffer], { type: mimeType || 'video/mp4' });
+    formData.append('file', blob, 'video.mp4');
 
     // Upload to Anthropic
     const response = await fetch(`${ANTHROPIC_API_BASE}/files`, {
@@ -65,16 +66,24 @@ exports.handler = async (event, context) => {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-beta': 'files-api-2025-04-14',
-        ...formData.getHeaders()
       },
       body: formData
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Anthropic API error:', errorData);
+      const errorText = await response.text();
+      console.error('Anthropic API error:', response.status, errorText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { error: { message: errorText } };
+      }
+      
       return {
         statusCode: response.status,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           error: errorData.error?.message || `Upload failed with status ${response.status}` 
         })
@@ -85,6 +94,7 @@ exports.handler = async (event, context) => {
     
     return {
       statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         fileId: data.id,
         message: 'Video uploaded successfully' 
@@ -95,6 +105,7 @@ exports.handler = async (event, context) => {
     console.error('Upload function error:', error);
     return {
       statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         error: error.message || 'Internal server error' 
       })

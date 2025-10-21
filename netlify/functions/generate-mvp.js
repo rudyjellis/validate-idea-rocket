@@ -1,7 +1,9 @@
 // Netlify serverless function to securely generate MVP document with Claude
-const fetch = require('node-fetch');
+// Uses Node 18+ built-in fetch
+// Model: claude-3-5-sonnet-20241022
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
+const MODEL = 'claude-3-5-sonnet-20241022'; // Claude 3.5 Sonnet (latest)
 
 const MVP_PROMPT = `You are an expert startup advisor and product strategist. Analyze the video pitch and create a comprehensive Minimum Viable Product (MVP) document.
 
@@ -44,6 +46,7 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
@@ -56,6 +59,7 @@ exports.handler = async (event, context) => {
       console.error('ANTHROPIC_API_KEY not found in environment');
       return {
         statusCode: 500,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           error: 'Server configuration error. API key not configured.' 
         })
@@ -68,6 +72,7 @@ exports.handler = async (event, context) => {
     if (!fileId) {
       return {
         statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'No file ID provided' })
       };
     }
@@ -82,7 +87,7 @@ exports.handler = async (event, context) => {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: MODEL,
         max_tokens: 4096,
         messages: [
           {
@@ -106,10 +111,19 @@ exports.handler = async (event, context) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Anthropic API error:', errorData);
+      const errorText = await response.text();
+      console.error('Anthropic API error:', response.status, errorText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { error: { message: errorText } };
+      }
+      
       return {
         statusCode: response.status,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           error: errorData.error?.message || `MVP generation failed with status ${response.status}` 
         })
@@ -126,8 +140,10 @@ exports.handler = async (event, context) => {
 
     return {
       statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         content: mvpContent,
+        model: MODEL,
         usage: data.usage
       })
     };
@@ -136,6 +152,7 @@ exports.handler = async (event, context) => {
     console.error('Generate MVP function error:', error);
     return {
       statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         error: error.message || 'Internal server error' 
       })
