@@ -14,8 +14,8 @@ vi.mock('@/utils/logger', () => ({
 describe('VideoElement Component', () => {
   let mockStream: MediaStream;
   let mockBlob: Blob;
-  let createObjectURLSpy: any;
-  let revokeObjectURLSpy: any;
+  let createObjectURLSpy: ReturnType<typeof vi.spyOn>;
+  let revokeObjectURLSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // Mock MediaStream
