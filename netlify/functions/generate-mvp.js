@@ -1,9 +1,9 @@
 // Netlify serverless function to securely generate MVP document with Claude
 // Uses Node 18+ built-in fetch
-// Model: claude-sonnet-4-5-20250929
+// Model: claude-haiku-4-5-20250929
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
-const MODEL = 'claude-sonnet-4-5-20250929'; // Claude Sonnet 4.5
+const MODEL = 'claude-haiku-4-5-20250929'; // Claude Haiku 4.5
 
 const MVP_PROMPT = `You are an expert startup advisor and product strategist. Analyze the video pitch and create a comprehensive Minimum Viable Product (MVP) document.
 
