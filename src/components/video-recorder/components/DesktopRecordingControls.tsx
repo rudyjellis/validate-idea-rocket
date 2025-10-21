@@ -6,7 +6,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import UploadButton from "./UploadButton";
 import type { RecordingState } from "../types";
+import type { UploadStatus } from "@/hooks/useVideoUpload";
 
 interface DesktopRecordingControlsProps {
   recordingState: RecordingState;
@@ -18,6 +20,8 @@ interface DesktopRecordingControlsProps {
   onPlayback: () => void;
   onStopPlayback?: () => void;
   onRestart?: () => void;
+  onUpload?: () => void;
+  uploadStatus?: UploadStatus;
   hasRecording: boolean;
   isPlayingBack?: boolean;
 }
@@ -28,6 +32,8 @@ const DesktopRecordingControls = ({
   onStopRecording,
   onPauseRecording,
   onResumeRecording,
+  onUpload,
+  uploadStatus = 'idle',
   onDownload,
   onPlayback,
   onStopPlayback,
@@ -118,12 +124,22 @@ const DesktopRecordingControls = ({
         )}
         
         {hasRecording && (
-          renderControlButton(
-            () => onDownload('mp4'),
-            <Download className="h-5 w-5" />,
-            "Download MP4",
-            "outline"
-          )
+          <>
+            {onUpload && (
+              <UploadButton
+                onUpload={onUpload}
+                disabled={false}
+                isUploading={uploadStatus === 'uploading' || uploadStatus === 'analyzing'}
+                uploadStatus={uploadStatus}
+              />
+            )}
+            {renderControlButton(
+              () => onDownload('mp4'),
+              <Download className="h-5 w-5" />,
+              "Download MP4",
+              "outline"
+            )}
+          </>
         )}
       </div>
     </TooltipProvider>

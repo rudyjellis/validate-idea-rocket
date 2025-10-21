@@ -35,5 +35,6 @@ export interface RecordingControlsProps {
   onResumeRecording: () => void;
   onDownload: (format: VideoFormat) => void;
   onPlayback: () => void;
+  onUpload?: () => void;
   hasRecording: boolean;
 }
