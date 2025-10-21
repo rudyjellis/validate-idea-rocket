@@ -1,4 +1,5 @@
 // Anthropic API service for video upload and MVP document generation
+// Now using secure Netlify serverless functions - API key never exposed to browser
 
 export interface AnthropicFileResponse {
   id: string;
@@ -32,7 +33,6 @@ export interface AnthropicErrorResponse {
   };
 }
 
-const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
 const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB
 
 export class AnthropicAPIError extends Error {
@@ -43,127 +43,98 @@ export class AnthropicAPIError extends Error {
 }
 
 /**
- * Upload a video file to Anthropic's Files API
+ * Convert Blob to base64 string
+ */
+async function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      // Remove data URL prefix (e.g., "data:video/mp4;base64,")
+      const base64Data = base64.split(',')[1];
+      resolve(base64Data);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Upload a video file via Netlify serverless function
+ * This keeps the API key secure on the server side
  */
 export async function uploadVideoFile(videoBlob: Blob): Promise<string> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  
-  if (!apiKey) {
-    throw new AnthropicAPIError('Anthropic API key not found. Please check your environment configuration.');
-  }
-
   if (videoBlob.size > MAX_FILE_SIZE) {
     throw new AnthropicAPIError(`File size (${(videoBlob.size / 1024 / 1024).toFixed(1)}MB) exceeds maximum allowed size of 30MB.`);
   }
 
-  const formData = new FormData();
-  formData.append('file', videoBlob);
-
   try {
-    const response = await fetch(`${ANTHROPIC_API_BASE}/files`, {
+    // Convert blob to base64 for transmission
+    const videoData = await blobToBase64(videoBlob);
+    
+    // Call Netlify function instead of Anthropic directly
+    const response = await fetch('/.netlify/functions/upload-video', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'files-api-2025-04-14',
+        'Content-Type': 'application/json',
       },
-      body: formData,
+      body: JSON.stringify({
+        videoData,
+        mimeType: videoBlob.type
+      }),
     });
 
     if (!response.ok) {
-      const errorData: AnthropicErrorResponse = await response.json();
+      const errorData = await response.json();
       throw new AnthropicAPIError(
-        errorData.error?.message || `Upload failed with status ${response.status}`,
+        errorData.error || `Upload failed with status ${response.status}`,
         response.status
       );
     }
 
-    const data: AnthropicFileResponse = await response.json();
-    return data.id;
+    const data = await response.json();
+    return data.fileId;
   } catch (error) {
     if (error instanceof AnthropicAPIError) {
       throw error;
     }
-    throw new AnthropicAPIError(`Network error during upload: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new AnthropicAPIError(
+      error instanceof Error ? error.message : 'Failed to upload video file'
+    );
   }
 }
 
 /**
- * Generate an MVP document from a video using Claude
+ * Generate an MVP document from a video using Claude via Netlify function
+ * This keeps the API key secure on the server side
  */
 export async function generateMVPDocument(fileId: string): Promise<string> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  
-  if (!apiKey) {
-    throw new AnthropicAPIError('Anthropic API key not found. Please check your environment configuration.');
-  }
-
-  const prompt = `Analyze this video and create a one-page MVP document for the startup idea presented. Include the following sections:
-
-1. **Executive Summary** - A brief overview of the idea
-2. **Problem Statement** - What problem does this solve?
-3. **Solution** - How does the proposed solution address the problem?
-4. **Target Audience** - Who are the primary users/customers?
-5. **Key Features** - What are the main features of the MVP?
-6. **Unique Value Proposition** - What makes this different from existing solutions?
-7. **Next Steps** - What are the immediate action items to build this?
-
-Format the response as a well-structured markdown document. If the video is unclear or doesn't contain a clear startup idea, please note this and provide guidance on what information would be helpful to include.`;
-
-  const requestBody = {
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 2048,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: prompt
-          },
-          {
-            type: 'document',
-            source: {
-              type: 'file',
-              file_id: fileId
-            }
-          }
-        ]
-      }
-    ]
-  };
-
   try {
-    const response = await fetch(`${ANTHROPIC_API_BASE}/messages`, {
+    // Call Netlify function instead of Anthropic directly
+    const response = await fetch('/.netlify/functions/generate-mvp', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'files-api-2025-04-14',
-        'content-type': 'application/json',
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({ fileId }),
     });
 
     if (!response.ok) {
-      const errorData: AnthropicErrorResponse = await response.json();
+      const errorData = await response.json();
       throw new AnthropicAPIError(
-        errorData.error?.message || `MVP generation failed with status ${response.status}`,
+        errorData.error || `MVP generation failed with status ${response.status}`,
         response.status
       );
     }
 
-    const data: AnthropicMessageResponse = await response.json();
-    
-    if (data.content && data.content.length > 0 && data.content[0].type === 'text') {
-      return data.content[0].text;
-    } else {
-      throw new AnthropicAPIError('Unexpected response format from Claude');
-    }
+    const data = await response.json();
+    return data.content;
   } catch (error) {
     if (error instanceof AnthropicAPIError) {
       throw error;
     }
-    throw new AnthropicAPIError(`Network error during MVP generation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new AnthropicAPIError(
+      error instanceof Error ? error.message : 'Failed to generate MVP document'
+    );
   }
 }
