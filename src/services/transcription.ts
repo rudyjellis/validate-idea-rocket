@@ -1,14 +1,13 @@
-// ⚠️ DEPRECATED: This Web Speech API implementation has been replaced
-// The new audio processing flow uses:
+// Web Speech API implementation for audio transcription
+// Current audio processing flow:
 // 1. audioExtraction.ts - Extracts audio from video
-// 2. anthropic.ts (uploadAudioToClaude) - Uploads audio to Claude
-// 3. Claude's native audio processing - Transcribes and analyzes in one step
+// 2. transcription.ts (this file) - Transcribes audio using Web Speech API
+// 3. anthropic.ts - Sends transcript to Claude for MVP analysis
 //
-// This file is kept for reference and potential fallback scenarios
-// See: src/hooks/useVideoUpload.ts for the current implementation
+// See: src/hooks/useVideoUpload.ts for the complete implementation flow
 //
-// Previous approach: Web Speech API (unreliable for pre-recorded audio)
-// Current approach: Claude native audio processing (more reliable + context-aware)
+// Note: Claude 4.5 Haiku does not support native audio transcription,
+// so we use the browser's Web Speech API for transcription.
 
 export class TranscriptionError extends Error {
   constructor(message: string, public code?: string) {
