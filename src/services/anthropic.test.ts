@@ -47,13 +47,13 @@ describe('anthropic service', () => {
   });
 
   describe('generateMVPDocument', () => {
-    it('should throw error when neither transcript nor fileId provided', async () => {
+    it('should throw error when neither transcript nor fileId nor audioData provided', async () => {
       await expect(generateMVPDocument()).rejects.toThrow(AnthropicAPIError);
-      await expect(generateMVPDocument()).rejects.toThrow('Either transcript or fileId must be provided');
+      await expect(generateMVPDocument()).rejects.toThrow('Either transcript, fileId, or audioData must be provided');
     });
 
-    it('should throw error when both are empty', async () => {
-      await expect(generateMVPDocument('', '')).rejects.toThrow(AnthropicAPIError);
+    it('should throw error when all are empty', async () => {
+      await expect(generateMVPDocument('', '', '', '')).rejects.toThrow(AnthropicAPIError);
     });
   });
 

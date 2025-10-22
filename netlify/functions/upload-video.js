@@ -128,11 +128,14 @@ exports.handler = async (event, context) => {
     console.log('File ID:', data.id);
     console.log('File type:', isAudio ? 'audio' : 'video');
 
+    // Return both fileId (for reference) and audioData (for direct use in Messages API)
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fileId: data.id,
+        audioData: videoData, // Return the base64 data for use in Messages API
+        mimeType: mimeType,   // Return MIME type for document.source
         message: `${isAudio ? 'Audio' : 'Video'} uploaded successfully`,
         fileType: isAudio ? 'audio' : 'video'
       })

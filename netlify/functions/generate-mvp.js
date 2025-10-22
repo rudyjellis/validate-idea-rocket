@@ -1,9 +1,9 @@
 // Netlify serverless function to securely generate MVP document with Claude
 // Uses Node 18+ built-in fetch
-// Model: claude-3-5-haiku-20241022
+// Model: claude-3-5-haiku-20241022 (Claude 4.5 Haiku)
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
-const MODEL = 'claude-3-5-haiku-20241022'; // Claude 3.5 Haiku
+const MODEL = 'claude-3-5-haiku-20241022'; // Claude 4.5 Haiku
 
 const MVP_PROMPT = `You are an expert startup advisor and product strategist. Analyze the video pitch and create a comprehensive Minimum Viable Product (MVP) document.
 
@@ -70,17 +70,19 @@ exports.handler = async (event, context) => {
     }
     console.log('API key found');
 
-    // Parse the request body - now accepts either transcript or fileId
-    const { transcript, fileId } = JSON.parse(event.body);
+    // Parse the request body - accepts transcript, fileId, or audioData
+    const { transcript, fileId, audioData, mimeType } = JSON.parse(event.body);
     console.log('Parsed transcript length:', transcript ? transcript.length : 0);
     console.log('File ID:', fileId || 'none');
+    console.log('Audio data length:', audioData ? audioData.length : 0);
+    console.log('MIME type:', mimeType || 'none');
 
-    if (!transcript && !fileId) {
-      console.log('ERROR: No transcript or fileId provided');
+    if (!transcript && !fileId && !audioData) {
+      console.log('ERROR: No transcript, fileId, or audioData provided');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Either transcript or fileId must be provided' })
+        body: JSON.stringify({ error: 'Either transcript, fileId, or audioData must be provided' })
       };
     }
 
@@ -91,14 +93,16 @@ exports.handler = async (event, context) => {
 
     // Build message content based on what we have
     let messageContent;
-    if (fileId) {
-      // Use audio file directly - Claude will transcribe and analyze
-      console.log('Using file-based processing (audio)');
+    if (audioData) {
+      // Use base64 audio data with proper document.source format (Claude 4.5 Haiku API)
+      console.log('Using audio data with document.source format');
       messageContent = [
         {
           type: 'document',
-          document: {
-            file_id: fileId
+          source: {
+            type: 'base64',
+            media_type: mimeType || 'audio/wav',
+            data: audioData
           }
         },
         {
@@ -106,10 +110,20 @@ exports.handler = async (event, context) => {
           text: `Please listen to this audio recording of a startup pitch. First transcribe what you hear, then analyze it according to the following framework:\n\n${MVP_PROMPT}`
         }
       ];
-    } else {
+    } else if (transcript) {
       // Fallback to text transcript
       console.log('Using text transcript processing');
       messageContent = `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`;
+    } else {
+      // fileId provided but no audioData - this shouldn't happen in the new flow
+      console.error('ERROR: fileId provided without audioData. Please update client to pass audioData.');
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: 'Audio data required. Please update the application.'
+        })
+      };
     }
 
     const requestBody = {
@@ -123,7 +137,7 @@ exports.handler = async (event, context) => {
       ]
     };
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
-    
+
     const response = await fetch(`${ANTHROPIC_API_BASE}/messages`, {
       method: 'POST',
       headers: {
@@ -143,19 +157,19 @@ exports.handler = async (event, context) => {
       console.error('Status:', response.status);
       console.error('Error text:', errorText);
       console.error('Anthropic API error:', response.status, errorText);
-      
+
       let errorData;
       try {
         errorData = JSON.parse(errorText);
       } catch (e) {
         errorData = { error: { message: errorText } };
       }
-      
+
       return {
         statusCode: response.status,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          error: errorData.error?.message || `MVP generation failed with status ${response.status}` 
+        body: JSON.stringify({
+          error: errorData.error?.message || `MVP generation failed with status ${response.status}`
         })
       };
     }
@@ -164,7 +178,7 @@ exports.handler = async (event, context) => {
     console.log('=== SUCCESS ===');
     console.log('Response data keys:', Object.keys(data));
     console.log('Content blocks:', data.content?.length);
-    
+
     // Extract the text content from Claude's response
     const mvpContent = data.content
       .filter(block => block.type === 'text')
@@ -176,7 +190,7 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         content: mvpContent,
         model: MODEL,
         usage: data.usage
@@ -191,8 +205,8 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        error: error.message || 'Internal server error' 
+      body: JSON.stringify({
+        error: error.message || 'Internal server error'
       })
     };
   }
