@@ -23,6 +23,9 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     cameras,
     selectedCamera,
     setSelectedCamera,
+    microphones,
+    selectedMicrophone,
+    setSelectedMicrophone,
     initializeStream,
     handleStartRecording,
     handleCountdownComplete,
@@ -53,8 +56,8 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
           setSelectedCamera(cameraToUse.deviceId);
         }
         
-        await initializeStream(cameraToUse?.deviceId || selectedCamera);
-        log.log("Mobile: Camera initialized successfully");
+        await initializeStream(cameraToUse?.deviceId || selectedCamera, selectedMicrophone);
+        log.log("Mobile: Camera and microphone initialized successfully");
       } catch (error) {
         log.error("Error initializing camera:", error);
         toast({
@@ -68,7 +71,7 @@ const MobileVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     };
 
     initCamera();
-  }, [selectedCamera, cameras, setSelectedCamera, initializeStream, toast, setIsInitializing]);
+  }, [selectedCamera, selectedMicrophone, cameras, setSelectedCamera, initializeStream, toast, setIsInitializing]);
 
   return (
     <div className="relative w-full h-full bg-black">

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import type { VideoRecorderProps } from '../types';
 import { useVideoRecording } from './useVideoRecording';
 import { useCameraDevices } from './useCameraDevices';
+import { useMicrophoneDevices } from './useMicrophoneDevices';
 import { useToast } from '@/components/ui/use-toast';
 import { createVideoRecorderLogger } from '@/utils/logger';
 
@@ -32,9 +33,10 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
   } = useVideoRecording(maxDuration);
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
+  const { microphones, selectedMicrophone, setSelectedMicrophone } = useMicrophoneDevices();
 
   const handleStartRecording = useCallback(async () => {
-    log.log("Starting recording with camera:", selectedCamera);
+    log.log("Starting recording with camera:", selectedCamera, "and microphone:", selectedMicrophone);
     if (!selectedCamera) {
       log.error("No camera selected");
       toast({
@@ -44,13 +46,13 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
       });
       return;
     }
-    
+
     setIsPlayingBack(false);
-    const stream = await startRecording(selectedCamera);
+    const stream = await startRecording(selectedCamera, selectedMicrophone);
     if (stream) {
       pendingStreamRef.current = stream;
     }
-  }, [selectedCamera, startRecording, toast]);
+  }, [selectedCamera, selectedMicrophone, startRecording, toast]);
 
   const handleCountdownComplete = useCallback(() => {
     log.log("Countdown complete, starting actual recording");
@@ -91,13 +93,13 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     try {
       log.log("Changing camera to:", deviceId);
       setIsInitializing(true);
-      
+
       if (recordingState !== "idle") {
         stopRecording();
       }
-      
+
       setSelectedCamera(deviceId);
-      await initializeStream(deviceId);
+      await initializeStream(deviceId, selectedMicrophone);
     } catch (error) {
       log.error("Camera switch error:", error);
       toast({
@@ -108,7 +110,30 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     } finally {
       setIsInitializing(false);
     }
-  }, [recordingState, stopRecording, setSelectedCamera, initializeStream, toast]);
+  }, [recordingState, stopRecording, setSelectedCamera, selectedMicrophone, initializeStream, toast]);
+
+  const handleMicrophoneChange = useCallback(async (deviceId: string) => {
+    try {
+      log.log("Changing microphone to:", deviceId);
+      setIsInitializing(true);
+
+      if (recordingState !== "idle") {
+        stopRecording();
+      }
+
+      setSelectedMicrophone(deviceId);
+      await initializeStream(selectedCamera, deviceId);
+    } catch (error) {
+      log.error("Microphone switch error:", error);
+      toast({
+        title: "Microphone Switch Error",
+        description: "Failed to switch microphones. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsInitializing(false);
+    }
+  }, [recordingState, stopRecording, selectedCamera, setSelectedMicrophone, initializeStream, toast]);
 
   return {
     // State
@@ -128,7 +153,12 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     cameras,
     selectedCamera,
     setSelectedCamera,
-    
+
+    // Microphone state
+    microphones,
+    selectedMicrophone,
+    setSelectedMicrophone,
+
     // Handlers
     handleStartRecording,
     handleCountdownComplete,
@@ -136,6 +166,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     handlePlayback,
     handleStopPlayback,
     handleCameraChange,
+    handleMicrophoneChange,
     
     // Direct access to recording functions
     startRecording,

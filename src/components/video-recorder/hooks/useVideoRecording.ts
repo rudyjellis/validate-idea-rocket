@@ -65,10 +65,10 @@ export const useVideoRecording = (maxDuration: number = 30) => {
     log.log("Recording started successfully");
   }, [startMediaRecorder, startTimer]);
 
-  const startRecording = useCallback(async (selectedCamera: string) => {
-    log.log("Starting recording with camera:", selectedCamera);
+  const startRecording = useCallback(async (selectedCamera: string, selectedMicrophone?: string) => {
+    log.log("Starting recording with camera:", selectedCamera, "and microphone:", selectedMicrophone);
     try {
-      const stream = await initializeStream(selectedCamera);
+      const stream = await initializeStream(selectedCamera, selectedMicrophone);
       if (!stream) {
         log.error("No stream available");
         return;
@@ -76,7 +76,7 @@ export const useVideoRecording = (maxDuration: number = 30) => {
 
       // Show countdown before starting recording
       setShowCountdown(true);
-      
+
       // Return the stream so countdown can trigger actual recording
       return stream;
     } catch (error) {

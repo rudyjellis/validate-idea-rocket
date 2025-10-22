@@ -1,4 +1,5 @@
 import CameraSelector from "../CameraSelector";
+import MicrophoneSelector from "../MicrophoneSelector";
 import RecordingControls from "../RecordingControls";
 import { useRecorderLogic } from "../hooks/useRecorderLogic";
 import { useVideoUpload } from "@/hooks/useVideoUpload";
@@ -21,12 +22,16 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     cameras,
     selectedCamera,
     setSelectedCamera,
+    microphones,
+    selectedMicrophone,
+    setSelectedMicrophone,
     handleStartRecording,
     handleCountdownComplete,
     handleDownload,
     handlePlayback,
     handleStopPlayback,
     handleCameraChange,
+    handleMicrophoneChange,
     pauseRecording,
     resumeRecording,
     stopRecording,
@@ -59,7 +64,14 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
         onCameraChange={handleCameraChange}
         disabled={recordingState !== "idle" || isInitializing}
       />
-      
+
+      <MicrophoneSelector
+        microphones={microphones}
+        selectedMicrophone={selectedMicrophone}
+        onMicrophoneChange={handleMicrophoneChange}
+        disabled={recordingState !== "idle" || isInitializing}
+      />
+
       <VideoPreviewContainer
         videoRef={videoRef}
         isInitializing={isInitializing}
