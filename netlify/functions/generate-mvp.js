@@ -105,10 +105,20 @@ exports.handler = async (event, context) => {
     console.log('Model:', MODEL);
 
     // Build message content based on what we have
+    // Priority: transcript (from Whisper) > audioData (Claude fallback) > fileId (legacy)
     let messageContent;
-    if (audioData) {
-      // Use base64 audio data with proper document.source format (Claude 4.5 Haiku API)
-      console.log('Using audio data with document.source format');
+    
+    if (transcript) {
+      // PREFERRED: Use text transcript from Whisper
+      console.log('✅ Using text transcript (preferred method - from Whisper)');
+      console.log('Transcript length:', transcript.length, 'characters');
+      console.log('First 100 chars:', transcript.substring(0, 100));
+      
+      messageContent = `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`;
+      
+    } else if (audioData) {
+      // FALLBACK: Use base64 audio data with proper document.source format (Claude 4.5 Haiku API)
+      console.log('⚠️ Using audio data fallback (Claude native processing)');
       console.log('Audio data validation:');
       console.log('  - MIME type:', mimeType || 'audio/wav');
       console.log('  - Data length:', audioData.length);
@@ -140,18 +150,26 @@ exports.handler = async (event, context) => {
           text: `Please listen to this audio recording of a startup pitch. First transcribe what you hear, then analyze it according to the following framework:\n\n${MVP_PROMPT}`
         }
       ];
-    } else if (transcript) {
-      // Fallback to text transcript
-      console.log('Using text transcript processing');
-      messageContent = `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`;
-    } else {
-      // fileId provided but no audioData - this shouldn't happen in the new flow
-      console.error('ERROR: fileId provided without audioData. Please update client to pass audioData.');
+      
+    } else if (fileId) {
+      // LEGACY: fileId provided but no audioData or transcript
+      console.error('⚠️ Legacy fileId method used. Please update client to use Whisper transcription.');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          error: 'Audio data required. Please update the application.'
+          error: 'Text transcript or audio data required. Please update the application.'
+        })
+      };
+      
+    } else {
+      // No valid input provided
+      console.error('ERROR: No transcript, audioData, or fileId provided');
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: 'Either transcript or audio data must be provided'
         })
       };
     }

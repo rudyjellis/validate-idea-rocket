@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useVideoUpload } from './useVideoUpload';
 import * as audioExtraction from '@/services/audioExtraction';
 import * as anthropic from '@/services/anthropic';
+import * as whisper from '@/services/whisper';
 
 // Mock dependencies
 vi.mock('react-router-dom', () => ({
@@ -18,9 +19,11 @@ vi.mock('@/components/ui/use-toast', () => ({
 // Mock services
 vi.mock('@/services/audioExtraction');
 vi.mock('@/services/anthropic');
+vi.mock('@/services/whisper');
 
 describe('useVideoUpload - Integration Tests', () => {
   let mockExtractAudioWithProgress: ReturnType<typeof vi.spyOn>;
+  let mockTranscribeAudioWithWhisper: ReturnType<typeof vi.spyOn>;
   let mockUploadAudioToClaude: ReturnType<typeof vi.spyOn>;
   let mockGenerateMVPDocument: ReturnType<typeof vi.spyOn>;
 
@@ -29,6 +32,7 @@ describe('useVideoUpload - Integration Tests', () => {
 
     // Setup mocks
     mockExtractAudioWithProgress = vi.spyOn(audioExtraction, 'extractAudioWithProgress');
+    mockTranscribeAudioWithWhisper = vi.spyOn(whisper, 'transcribeAudioWithWhisper');
     mockUploadAudioToClaude = vi.spyOn(anthropic, 'uploadAudioToClaude');
     mockGenerateMVPDocument = vi.spyOn(anthropic, 'generateMVPDocument');
   });
@@ -38,19 +42,18 @@ describe('useVideoUpload - Integration Tests', () => {
   });
 
   describe('End-to-End Audio Processing Flow', () => {
-    it('should complete full audio processing workflow successfully', async () => {
+    it('should complete full audio processing workflow with Whisper successfully', async () => {
       // Mock successful responses
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-      const mockFileId = 'file-abc123';
-      const mockAudioData = 'base64-encoded-audio-data';
-      const mockMimeType = 'audio/wav';
+      const mockTranscript = 'This is a test transcription of the startup pitch';
       const mockMVPContent = '# MVP Document\n\nExecutive Summary...';
 
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue({
-        fileId: mockFileId,
-        audioData: mockAudioData,
-        mimeType: mockMimeType
+      mockTranscribeAudioWithWhisper.mockResolvedValue({
+        text: mockTranscript,
+        duration: 10.5,
+        language: 'en',
+        processingTime: 2.3
       });
       mockGenerateMVPDocument.mockResolvedValue(mockMVPContent);
 
@@ -69,17 +72,64 @@ describe('useVideoUpload - Integration Tests', () => {
         expect(result.current.uploadStatus).toBe('success');
       });
 
-      // Verify the full flow
+      // Verify the full flow with Whisper
       expect(mockExtractAudioWithProgress).toHaveBeenCalledTimes(1);
       expect(mockExtractAudioWithProgress).toHaveBeenCalledWith(
         expect.any(Blob),
         expect.any(Function)
       );
 
-      expect(mockUploadAudioToClaude).toHaveBeenCalledTimes(1);
-      expect(mockUploadAudioToClaude).toHaveBeenCalledWith(mockAudioBlob);
+      expect(mockTranscribeAudioWithWhisper).toHaveBeenCalledTimes(1);
+      expect(mockTranscribeAudioWithWhisper).toHaveBeenCalledWith(
+        mockAudioBlob,
+        'en',
+        expect.any(Function)
+      );
+
+      // Whisper flow should NOT call uploadAudioToClaude
+      expect(mockUploadAudioToClaude).not.toHaveBeenCalled();
 
       expect(mockGenerateMVPDocument).toHaveBeenCalledTimes(1);
+      expect(mockGenerateMVPDocument).toHaveBeenCalledWith(mockTranscript);
+
+      expect(result.current.mvpDocument).toBeDefined();
+      expect(result.current.mvpDocument?.content).toBe(mockMVPContent);
+      expect(result.current.mvpDocument?.transcript).toBe(mockTranscript);
+      expect(result.current.error).toBeNull();
+    });
+
+    it('should fallback to Claude audio processing when Whisper fails', async () => {
+      // Mock Whisper failure and Claude fallback success
+      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
+      const mockFileId = 'file-abc123';
+      const mockAudioData = 'base64-encoded-audio-data';
+      const mockMimeType = 'audio/wav';
+      const mockMVPContent = '# MVP Document\n\nExecutive Summary...';
+
+      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
+      mockTranscribeAudioWithWhisper.mockRejectedValue(
+        new whisper.WhisperAPIError('Whisper service unavailable', 503)
+      );
+      mockUploadAudioToClaude.mockResolvedValue({
+        fileId: mockFileId,
+        audioData: mockAudioData,
+        mimeType: mockMimeType
+      });
+      mockGenerateMVPDocument.mockResolvedValue(mockMVPContent);
+
+      const { result } = renderHook(() => useVideoUpload());
+
+      const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
+
+      await result.current.uploadAndGenerateMVP(videoChunks);
+
+      await waitFor(() => {
+        expect(result.current.uploadStatus).toBe('success');
+      });
+
+      // Verify fallback flow
+      expect(mockTranscribeAudioWithWhisper).toHaveBeenCalledTimes(1);
+      expect(mockUploadAudioToClaude).toHaveBeenCalledTimes(1);
       expect(mockGenerateMVPDocument).toHaveBeenCalledWith(
         undefined,
         mockFileId,
@@ -88,31 +138,22 @@ describe('useVideoUpload - Integration Tests', () => {
       );
 
       expect(result.current.mvpDocument).toBeDefined();
-      expect(result.current.mvpDocument?.content).toBe(mockMVPContent);
-      expect(result.current.error).toBeNull();
+      expect(result.current.mvpDocument?.transcript).toContain('Claude');
     });
 
-    it('should track progress through all stages', async () => {
+    it('should track progress through all stages with Whisper', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue({
-        fileId: 'file-123',
-        audioData: 'base64-data',
-        mimeType: 'audio/wav'
+      mockTranscribeAudioWithWhisper.mockResolvedValue({
+        text: 'Test transcript',
+        duration: 10,
+        language: 'en'
       });
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
-      const progressStates: string[] = [];
-
-      // Track progress changes
-      const trackProgress = () => {
-        if (result.current.progress?.message) {
-          progressStates.push(result.current.progress.message);
-        }
-      };
 
       await result.current.uploadAndGenerateMVP(videoChunks);
 
@@ -121,9 +162,8 @@ describe('useVideoUpload - Integration Tests', () => {
       });
 
       // Verify progress went through expected stages
-      // (We can't track real-time updates in this test, but we can verify final state)
       expect(mockExtractAudioWithProgress).toHaveBeenCalled();
-      expect(mockUploadAudioToClaude).toHaveBeenCalled();
+      expect(mockTranscribeAudioWithWhisper).toHaveBeenCalled();
       expect(mockGenerateMVPDocument).toHaveBeenCalled();
     });
 
@@ -147,12 +187,18 @@ describe('useVideoUpload - Integration Tests', () => {
       expect(mockGenerateMVPDocument).not.toHaveBeenCalled();
     });
 
-    it('should handle upload failure gracefully', async () => {
+    it('should handle Whisper transcription failure with fallback', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockRejectedValue(
-        new anthropic.AnthropicAPIError('Upload failed', 500)
+      mockTranscribeAudioWithWhisper.mockRejectedValue(
+        new whisper.WhisperAPIError('Transcription failed', 500)
       );
+      mockUploadAudioToClaude.mockResolvedValue({
+        fileId: 'file-123',
+        audioData: 'base64-data',
+        mimeType: 'audio/wav'
+      });
+      mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
 
@@ -161,17 +207,22 @@ describe('useVideoUpload - Integration Tests', () => {
       await result.current.uploadAndGenerateMVP(videoChunks);
 
       await waitFor(() => {
-        expect(result.current.uploadStatus).toBe('error');
-        expect(result.current.error).not.toBeNull();
+        expect(result.current.uploadStatus).toBe('success');
       }, { timeout: 5000 });
 
-      expect(mockGenerateMVPDocument).not.toHaveBeenCalled();
+      // Should fallback to Claude
+      expect(mockUploadAudioToClaude).toHaveBeenCalled();
+      expect(mockGenerateMVPDocument).toHaveBeenCalled();
     });
 
     it('should handle MVP generation failure gracefully', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue('file-123');
+      mockTranscribeAudioWithWhisper.mockResolvedValue({
+        text: 'Test transcript',
+        duration: 10,
+        language: 'en'
+      });
       mockGenerateMVPDocument.mockRejectedValue(
         new anthropic.AnthropicAPIError('API rate limit exceeded', 429)
       );
@@ -229,12 +280,17 @@ describe('useVideoUpload - Integration Tests', () => {
       expect(videoBlob.type).toBe('video/mp4');
     });
 
-    it('should create MVP document with correct metadata', async () => {
+    it('should create MVP document with correct metadata from Whisper', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
+      const mockTranscript = 'This is the actual transcript from Whisper';
       const mockMVPContent = '# MVP Document\n\nExecutive Summary...';
 
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue('file-123');
+      mockTranscribeAudioWithWhisper.mockResolvedValue({
+        text: mockTranscript,
+        duration: 10,
+        language: 'en'
+      });
       mockGenerateMVPDocument.mockResolvedValue(mockMVPContent);
 
       const { result } = renderHook(() => useVideoUpload());
@@ -250,15 +306,19 @@ describe('useVideoUpload - Integration Tests', () => {
       const document = result.current.mvpDocument;
       expect(document).toBeDefined();
       expect(document?.content).toBe(mockMVPContent);
-      expect(document?.transcript).toBe('Audio processed directly by Claude');
+      expect(document?.transcript).toBe(mockTranscript);
       expect(document?.createdAt).toBeDefined();
-      expect(document?.transcriptFileName).toMatch(/pitch-analysis-\d{4}-\d{2}-\d{2}\.txt/);
+      expect(document?.transcriptFileName).toMatch(/pitch-transcript-\d{4}-\d{2}-\d{2}\.txt/);
     });
 
     it('should reset upload state correctly', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue('file-123');
+      mockTranscribeAudioWithWhisper.mockResolvedValue({
+        text: 'Test transcript',
+        duration: 10,
+        language: 'en'
+      });
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
@@ -320,8 +380,7 @@ describe('useVideoUpload - Integration Tests', () => {
       expect(result.current.error).toContain('Unknown error occurred');
     });
 
-    it('should call progress callbacks during extraction', async () => {
-      const progressCallback = vi.fn();
+    it('should call progress callbacks during extraction and transcription', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
 
       mockExtractAudioWithProgress.mockImplementation(async (blob, callback) => {
@@ -333,7 +392,11 @@ describe('useVideoUpload - Integration Tests', () => {
         return mockAudioBlob;
       });
 
-      mockUploadAudioToClaude.mockResolvedValue('file-123');
+      mockTranscribeAudioWithWhisper.mockResolvedValue({
+        text: 'Test transcript',
+        duration: 10,
+        language: 'en'
+      });
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
@@ -346,9 +409,14 @@ describe('useVideoUpload - Integration Tests', () => {
         expect(result.current.uploadStatus).toBe('success');
       });
 
-      // Verify progress callback was passed
+      // Verify progress callbacks were passed
       expect(mockExtractAudioWithProgress).toHaveBeenCalledWith(
         expect.any(Blob),
+        expect.any(Function)
+      );
+      expect(mockTranscribeAudioWithWhisper).toHaveBeenCalledWith(
+        expect.any(Blob),
+        'en',
         expect.any(Function)
       );
     });
@@ -358,7 +426,11 @@ describe('useVideoUpload - Integration Tests', () => {
     it('should clear progress state after completion', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue('file-123');
+      mockTranscribeAudioWithWhisper.mockResolvedValue({
+        text: 'Test transcript',
+        duration: 10,
+        language: 'en'
+      });
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());

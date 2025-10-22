@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { generateMVPDocument, uploadAudioToClaude, AnthropicAPIError } from '@/services/anthropic';
 import { extractAudioWithProgress, AudioExtractionError } from '@/services/audioExtraction';
+import { transcribeAudioWithWhisper, WhisperAPIError } from '@/services/whisper';
 
 export type UploadStatus = 'idle' | 'transcribing' | 'analyzing' | 'success' | 'error';
 
@@ -76,27 +77,97 @@ export function useVideoUpload() {
       setProgress({
         stage: 'transcribing',
         percentage: 40,
-        message: 'Uploading audio to Claude...'
+        message: 'Transcribing audio with Whisper...'
       });
 
-      // Upload audio to Claude and get file ID + audio data
-      const uploadResult = await uploadAudioToClaude(audioBlob);
-      console.log('Audio uploaded, file ID:', uploadResult.fileId);
+      // Transcribe audio using Whisper API
+      let transcriptText: string;
+      let transcriptionDuration: number | undefined;
+      
+      try {
+        const transcriptionResult = await transcribeAudioWithWhisper(
+          audioBlob,
+          'en', // English language
+          (status) => {
+            setProgress({
+              stage: 'transcribing',
+              percentage: 50,
+              message: status
+            });
+          }
+        );
+        
+        transcriptText = transcriptionResult.text;
+        transcriptionDuration = transcriptionResult.duration;
+        console.log('✅ Whisper transcription successful');
+        console.log('Transcript length:', transcriptText.length, 'characters');
+        console.log('Audio duration:', transcriptionDuration, 'seconds');
+      } catch (whisperError) {
+        // Fallback to Claude audio processing if Whisper fails
+        console.warn('⚠️ Whisper transcription failed, falling back to Claude audio processing');
+        console.error('Whisper error:', whisperError);
+        
+        setProgress({
+          stage: 'transcribing',
+          percentage: 45,
+          message: 'Using alternative transcription method...'
+        });
+
+        // Upload audio to Claude as fallback
+        const uploadResult = await uploadAudioToClaude(audioBlob);
+        console.log('Audio uploaded to Claude, file ID:', uploadResult.fileId);
+
+        setProgress({
+          stage: 'analyzing',
+          percentage: 60,
+          message: 'Claude is transcribing and analyzing your pitch...'
+        });
+
+        // Generate MVP using Claude's audio processing
+        const mvpContent = await generateMVPDocument(
+          undefined,
+          uploadResult.fileId,
+          uploadResult.audioData,
+          uploadResult.mimeType
+        );
+
+        setProgress({
+          stage: 'analyzing',
+          percentage: 100,
+          message: 'Analysis complete!'
+        });
+
+        const now = new Date();
+        const document: MVPDocument = {
+          content: mvpContent,
+          transcript: 'Audio processed directly by Claude (Whisper unavailable)',
+          createdAt: now.toISOString(),
+          transcriptFileName: `pitch-analysis-${now.toISOString().split('T')[0]}.txt`
+        };
+
+        setMvpDocument(document);
+        setUploadStatus('success');
+
+        navigate('/mvp-results', {
+          state: { mvpDocument: document }
+        });
+
+        toast({
+          title: "MVP Document Generated!",
+          description: "Your startup idea has been analyzed and converted into an MVP document.",
+        });
+
+        return;
+      }
 
       setProgress({
         stage: 'analyzing',
-        percentage: 60,
-        message: 'Claude is transcribing and analyzing your pitch...'
+        percentage: 70,
+        message: 'Analyzing your pitch with Claude...'
       });
 
-      // Generate MVP document using the audio data (Claude 4.5 Haiku API)
-      // Claude will transcribe and analyze the audio in one step
-      const mvpContent = await generateMVPDocument(
-        undefined,
-        uploadResult.fileId,
-        uploadResult.audioData,
-        uploadResult.mimeType
-      );
+      // Generate MVP document using the transcript (preferred method)
+      const mvpContent = await generateMVPDocument(transcriptText);
 
       setProgress({
         stage: 'analyzing',
@@ -107,9 +178,9 @@ export function useVideoUpload() {
       const now = new Date();
       const document: MVPDocument = {
         content: mvpContent,
-        transcript: 'Audio processed directly by Claude', // We don't have a separate transcript
+        transcript: transcriptText, // Now we have the actual transcript from Whisper!
         createdAt: now.toISOString(),
-        transcriptFileName: `pitch-analysis-${now.toISOString().split('T')[0]}.txt`
+        transcriptFileName: `pitch-transcript-${now.toISOString().split('T')[0]}.txt`
       };
 
       setMvpDocument(document);
@@ -138,6 +209,8 @@ export function useVideoUpload() {
         } else {
           errorMessage = `Audio extraction failed: ${err.message}`;
         }
+      } else if (err instanceof WhisperAPIError) {
+        errorMessage = `Transcription failed: ${err.message}`;
       } else if (err instanceof AnthropicAPIError) {
         errorMessage = err.message;
       } else if (err instanceof Error) {

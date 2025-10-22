@@ -89,9 +89,14 @@ export async function uploadAudioToClaude(audioBlob: Blob): Promise<AudioUploadR
  * Generate an MVP document from a video transcript using Claude via Netlify function
  * This keeps the API key secure on the server side
  *
- * @param transcript - Optional text transcript (for fallback)
+ * Priority order:
+ * 1. Text transcript (from Whisper or user-edited) - PREFERRED
+ * 2. Audio data (Claude native audio processing) - FALLBACK
+ * 3. File ID (deprecated, kept for compatibility) - LEGACY
+ *
+ * @param transcript - Optional text transcript (PREFERRED - from Whisper transcription)
  * @param fileId - Optional Claude file ID (deprecated, kept for compatibility)
- * @param audioData - Optional base64 audio data (preferred method for Claude 4.5 Haiku)
+ * @param audioData - Optional base64 audio data (fallback if transcript unavailable)
  * @param mimeType - Optional MIME type for audio data
  * @returns Promise<string> - The generated MVP document content
  */
@@ -107,14 +112,18 @@ export async function generateMVPDocument(
 
   try {
     console.log('🤖 Generating MVP document...');
-    if (audioData) {
-      console.log('Using audio data with document.source (Claude 4.5 Haiku API)');
+    
+    // Prioritize text transcript (from Whisper)
+    if (transcript) {
+      console.log('✅ Using text transcript (preferred method)');
+      console.log('Transcript length:', transcript.length, 'characters');
+    } else if (audioData) {
+      console.log('⚠️ Using audio data fallback (Claude native processing)');
       console.log('Audio data length:', audioData.length);
       console.log('MIME type:', mimeType);
     } else if (fileId) {
-      console.log('Using audio file ID:', fileId);
-    } else {
-      console.log('Using text transcript, length:', transcript?.length);
+      console.log('⚠️ Using file ID (legacy method)');
+      console.log('File ID:', fileId);
     }
 
     // Call Netlify function instead of Anthropic directly
