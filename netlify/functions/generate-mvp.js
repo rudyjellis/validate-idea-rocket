@@ -97,8 +97,7 @@ exports.handler = async (event, context) => {
       messageContent = [
         {
           type: 'document',
-          source: {
-            type: 'file',
+          document: {
             file_id: fileId
           }
         },
