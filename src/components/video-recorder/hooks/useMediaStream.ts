@@ -20,7 +20,7 @@ export const useMediaStream = () => {
     };
   }, []);
 
-  const initializeStream = useCallback(async (selectedCamera: string) => {
+  const initializeStream = useCallback(async (selectedCamera: string, selectedMicrophone?: string) => {
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -42,14 +42,21 @@ export const useMediaStream = () => {
       };
 
       log.log(`Initializing stream for ${isMobile ? 'mobile (9:16)' : 'desktop (16:9)'}`);
-      
+
+      const audioConstraints = selectedMicrophone ? {
+        deviceId: { ideal: selectedMicrophone },
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100,
+      } : {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100,
+      };
+
       const constraints = {
         video: videoConstraints,
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100,
-        }
+        audio: audioConstraints,
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
