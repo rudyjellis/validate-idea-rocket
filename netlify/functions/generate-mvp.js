@@ -1,9 +1,22 @@
 // Netlify serverless function to securely generate MVP document with Claude
 // Uses Node 18+ built-in fetch
 // Model: claude-3-5-haiku-20241022 (Claude 4.5 Haiku)
+//
+// Claude 4.5 Haiku API Compatibility:
+// - Model: claude-3-5-haiku-20241022
+// - API Version: 2023-06-01
+// - Beta Header: pdfs-2024-09-25 (required for document/audio processing)
+// - Document Source Format: { type: 'base64', media_type: 'audio/wav', data: '<base64>' }
+//
+// Supported Audio Formats:
+// - WAV (audio/wav) - recommended
+// - MP3 (audio/mp3)
+// - Other formats supported by Claude's document processing
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
 const MODEL = 'claude-3-5-haiku-20241022'; // Claude 4.5 Haiku
+const API_VERSION = '2023-06-01';
+const BETA_HEADER = 'pdfs-2024-09-25'; // Required for document processing
 
 const MVP_PROMPT = `You are an expert startup advisor and product strategist. Analyze the video pitch and create a comprehensive Minimum Viable Product (MVP) document.
 
@@ -96,6 +109,23 @@ exports.handler = async (event, context) => {
     if (audioData) {
       // Use base64 audio data with proper document.source format (Claude 4.5 Haiku API)
       console.log('Using audio data with document.source format');
+      console.log('Audio data validation:');
+      console.log('  - MIME type:', mimeType || 'audio/wav');
+      console.log('  - Data length:', audioData.length);
+      console.log('  - First 50 chars:', audioData.substring(0, 50));
+
+      // Validate audio data format
+      if (!audioData || audioData.length === 0) {
+        console.error('ERROR: Audio data is empty');
+        return {
+          statusCode: 400,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            error: 'Audio data cannot be empty'
+          })
+        };
+      }
+
       messageContent = [
         {
           type: 'document',
@@ -126,6 +156,7 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Build the request body according to Claude 4.5 Haiku API specification
     const requestBody = {
       model: MODEL,
       max_tokens: 4096,
@@ -136,20 +167,35 @@ exports.handler = async (event, context) => {
         }
       ]
     };
-    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
+    // Log request (truncate audio data for readability)
+    const logBody = JSON.parse(JSON.stringify(requestBody));
+    if (logBody.messages?.[0]?.content?.[0]?.source?.data) {
+      logBody.messages[0].content[0].source.data = logBody.messages[0].content[0].source.data.substring(0, 100) + '... (truncated)';
+    }
+    console.log('Request body:', JSON.stringify(logBody, null, 2));
+
+    console.log('Sending request to Claude 4.5 Haiku API...');
+    console.log('  - Endpoint:', `${ANTHROPIC_API_BASE}/messages`);
+    console.log('  - Model:', MODEL);
+    console.log('  - API Version:', API_VERSION);
+    console.log('  - Beta Header:', BETA_HEADER);
 
     const response = await fetch(`${ANTHROPIC_API_BASE}/messages`, {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': API_VERSION,
+        'anthropic-beta': BETA_HEADER,
         'content-type': 'application/json'
       },
       body: JSON.stringify(requestBody)
     });
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', JSON.stringify([...response.headers.entries()]));
+    console.log('Response received:');
+    console.log('  - Status:', response.status);
+    console.log('  - Status Text:', response.statusText);
+    console.log('  - Headers:', JSON.stringify([...response.headers.entries()]));
 
     if (!response.ok) {
       const errorText = await response.text();
