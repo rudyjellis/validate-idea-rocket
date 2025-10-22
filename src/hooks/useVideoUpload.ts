@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { generateMVPDocument, uploadAudioToClaude, AnthropicAPIError } from '@/services/anthropic';
+import { generateMVPDocument, AnthropicAPIError } from '@/services/anthropic';
 import { extractAudioWithProgress, AudioExtractionError } from '@/services/audioExtraction';
 
 export type UploadStatus = 'idle' | 'transcribing' | 'analyzing' | 'success' | 'error';
@@ -76,27 +76,30 @@ export function useVideoUpload() {
       setProgress({
         stage: 'transcribing',
         percentage: 40,
-        message: 'Uploading audio to Claude...'
+        message: 'Transcribing your pitch...'
       });
 
-      // Upload audio to Claude and get file ID + audio data
-      const uploadResult = await uploadAudioToClaude(audioBlob);
-      console.log('Audio uploaded, file ID:', uploadResult.fileId);
+      // Transcribe audio using Web Speech API
+      const { transcribeVideoWithProgress } = await import('@/services/transcription');
+      const transcript = await transcribeVideoWithProgress(videoBlob, (status) => {
+        console.log('Transcription progress:', status);
+        setProgress({
+          stage: 'transcribing',
+          percentage: 50,
+          message: status
+        });
+      });
+
+      console.log('Transcription complete:', transcript.length, 'characters');
 
       setProgress({
         stage: 'analyzing',
         percentage: 60,
-        message: 'Claude is transcribing and analyzing your pitch...'
+        message: 'Claude is analyzing your pitch...'
       });
 
-      // Generate MVP document using the audio data (Claude 4.5 Haiku API)
-      // Claude will transcribe and analyze the audio in one step
-      const mvpContent = await generateMVPDocument(
-        undefined,
-        uploadResult.fileId,
-        uploadResult.audioData,
-        uploadResult.mimeType
-      );
+      // Generate MVP document using the transcript
+      const mvpContent = await generateMVPDocument(transcript);
 
       setProgress({
         stage: 'analyzing',
@@ -107,7 +110,7 @@ export function useVideoUpload() {
       const now = new Date();
       const document: MVPDocument = {
         content: mvpContent,
-        transcript: 'Audio processed directly by Claude', // We don't have a separate transcript
+        transcript: transcript, // Store the transcribed text
         createdAt: now.toISOString(),
         transcriptFileName: `pitch-analysis-${now.toISOString().split('T')[0]}.txt`
       };

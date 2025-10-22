@@ -5,18 +5,15 @@
 // Claude 4.5 Haiku API Compatibility:
 // - Model: claude-3-5-haiku-20241022
 // - API Version: 2023-06-01
-// - Beta Header: pdfs-2024-09-25 (required for document/audio processing)
-// - Document Source Format: { type: 'base64', media_type: 'audio/wav', data: '<base64>' }
+// - Input: Text transcript (Claude 4.5 Haiku does not support direct audio transcription)
+// - Output: Structured MVP document in markdown format
 //
-// Supported Audio Formats:
-// - WAV (audio/wav) - recommended
-// - MP3 (audio/mp3)
-// - Other formats supported by Claude's document processing
+// Note: Audio must be transcribed to text before being sent to Claude.
+// The client uses Web Speech API for transcription.
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com/v1';
 const MODEL = 'claude-3-5-haiku-20241022'; // Claude 4.5 Haiku
 const API_VERSION = '2023-06-01';
-const BETA_HEADER = 'pdfs-2024-09-25'; // Required for document processing
 
 const MVP_PROMPT = `You are an expert startup advisor and product strategist. Analyze the video pitch and create a comprehensive Minimum Viable Product (MVP) document.
 
@@ -83,19 +80,16 @@ exports.handler = async (event, context) => {
     }
     console.log('API key found');
 
-    // Parse the request body - accepts transcript, fileId, or audioData
-    const { transcript, fileId, audioData, mimeType } = JSON.parse(event.body);
+    // Parse the request body - accepts transcript only
+    const { transcript } = JSON.parse(event.body);
     console.log('Parsed transcript length:', transcript ? transcript.length : 0);
-    console.log('File ID:', fileId || 'none');
-    console.log('Audio data length:', audioData ? audioData.length : 0);
-    console.log('MIME type:', mimeType || 'none');
 
-    if (!transcript && !fileId && !audioData) {
-      console.log('ERROR: No transcript, fileId, or audioData provided');
+    if (!transcript) {
+      console.log('ERROR: No transcript provided');
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Either transcript, fileId, or audioData must be provided' })
+        body: JSON.stringify({ error: 'Transcript is required' })
       };
     }
 
@@ -104,57 +98,9 @@ exports.handler = async (event, context) => {
     console.log('URL:', `${ANTHROPIC_API_BASE}/messages`);
     console.log('Model:', MODEL);
 
-    // Build message content based on what we have
-    let messageContent;
-    if (audioData) {
-      // Use base64 audio data with proper document.source format (Claude 4.5 Haiku API)
-      console.log('Using audio data with document.source format');
-      console.log('Audio data validation:');
-      console.log('  - MIME type:', mimeType || 'audio/wav');
-      console.log('  - Data length:', audioData.length);
-      console.log('  - First 50 chars:', audioData.substring(0, 50));
-
-      // Validate audio data format
-      if (!audioData || audioData.length === 0) {
-        console.error('ERROR: Audio data is empty');
-        return {
-          statusCode: 400,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            error: 'Audio data cannot be empty'
-          })
-        };
-      }
-
-      messageContent = [
-        {
-          type: 'document',
-          source: {
-            type: 'base64',
-            media_type: mimeType || 'audio/wav',
-            data: audioData
-          }
-        },
-        {
-          type: 'text',
-          text: `Please listen to this audio recording of a startup pitch. First transcribe what you hear, then analyze it according to the following framework:\n\n${MVP_PROMPT}`
-        }
-      ];
-    } else if (transcript) {
-      // Fallback to text transcript
-      console.log('Using text transcript processing');
-      messageContent = `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`;
-    } else {
-      // fileId provided but no audioData - this shouldn't happen in the new flow
-      console.error('ERROR: fileId provided without audioData. Please update client to pass audioData.');
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          error: 'Audio data required. Please update the application.'
-        })
-      };
-    }
+    // Build message content from transcript
+    console.log('Using text transcript processing');
+    const messageContent = `Here is a transcript of a startup pitch video:\n\n"${transcript}"\n\n${MVP_PROMPT}`;
 
     // Build the request body according to Claude 4.5 Haiku API specification
     const requestBody = {
@@ -168,25 +114,19 @@ exports.handler = async (event, context) => {
       ]
     };
 
-    // Log request (truncate audio data for readability)
-    const logBody = JSON.parse(JSON.stringify(requestBody));
-    if (logBody.messages?.[0]?.content?.[0]?.source?.data) {
-      logBody.messages[0].content[0].source.data = logBody.messages[0].content[0].source.data.substring(0, 100) + '... (truncated)';
-    }
-    console.log('Request body:', JSON.stringify(logBody, null, 2));
+    // Log request
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
 
     console.log('Sending request to Claude 4.5 Haiku API...');
     console.log('  - Endpoint:', `${ANTHROPIC_API_BASE}/messages`);
     console.log('  - Model:', MODEL);
     console.log('  - API Version:', API_VERSION);
-    console.log('  - Beta Header:', BETA_HEADER);
 
     const response = await fetch(`${ANTHROPIC_API_BASE}/messages`, {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': API_VERSION,
-        'anthropic-beta': BETA_HEADER,
         'content-type': 'application/json'
       },
       body: JSON.stringify(requestBody)
