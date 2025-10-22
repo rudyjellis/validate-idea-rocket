@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { generateMVPDocument, AnthropicAPIError } from '@/services/anthropic';
 import { extractAudioWithProgress, AudioExtractionError } from '@/services/audioExtraction';
+import { 
+  transcribeAudio, 
+  TranscriptionError,
+  type TranscriptionResult,
+  type TranscriptionProviderType 
+} from '@/services/transcription';
 
 export type UploadStatus = 'idle' | 'transcribing' | 'analyzing' | 'success' | 'error';
 
@@ -15,6 +21,8 @@ export interface UploadProgress {
 export interface MVPDocument {
   content: string;
   transcript: string;
+  provider?: TranscriptionProviderType;
+  transcriptionMetadata?: any;
   createdAt: string;
   transcriptFileName: string;
 }
@@ -24,6 +32,8 @@ export function useVideoUpload() {
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mvpDocument, setMvpDocument] = useState<MVPDocument | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<TranscriptionProviderType | null>(null);
+  const [transcriptionResults, setTranscriptionResults] = useState<Map<TranscriptionProviderType, TranscriptionResult>>(new Map());
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -33,15 +43,21 @@ export function useVideoUpload() {
     setProgress(null);
     setError(null);
     setMvpDocument(null);
+    setSelectedProvider(null);
+    setTranscriptionResults(new Map());
   }, []);
 
-  const uploadAndGenerateMVP = useCallback(async (recordedChunks: Blob[]) => {
+  const uploadAndGenerateMVP = useCallback(async (
+    recordedChunks: Blob[],
+    provider: TranscriptionProviderType = 'web-speech'
+  ) => {
     if (recordedChunks.length === 0) {
       setError('No video recording found. Please record a video first.');
       setUploadStatus('error');
       return;
     }
 
+    setSelectedProvider(provider);
     setUploadStatus('transcribing');
     setError(null);
     setProgress({
@@ -76,30 +92,43 @@ export function useVideoUpload() {
       setProgress({
         stage: 'transcribing',
         percentage: 40,
-        message: 'Transcribing your pitch...'
+        message: `Transcribing with ${provider}...`
       });
 
-      // Transcribe audio using Web Speech API
-      const { transcribeVideoWithProgress } = await import('@/services/transcription');
-      const transcript = await transcribeVideoWithProgress(videoBlob, (status) => {
-        console.log('Transcription progress:', status);
-        setProgress({
-          stage: 'transcribing',
-          percentage: 50,
-          message: status
-        });
-      });
+      // Transcribe audio using selected provider
+      const transcriptionResult = await transcribeAudio(
+        audioBlob,
+        {
+          provider,
+          language: 'en',
+          smartFormat: true,
+          diarize: false
+        },
+        (status, percentage) => {
+          setProgress({
+            stage: 'transcribing',
+            percentage: percentage || 50,
+            message: status
+          });
+        }
+      );
 
-      console.log('Transcription complete:', transcript.length, 'characters');
+      console.log('Transcription complete:', transcriptionResult.text.length, 'characters');
+      console.log('Provider:', transcriptionResult.provider);
+      console.log('Duration:', transcriptionResult.duration, 'seconds');
+      console.log('Confidence:', transcriptionResult.confidence);
+
+      // Store transcription result
+      setTranscriptionResults(prev => new Map(prev).set(provider, transcriptionResult));
 
       setProgress({
         stage: 'analyzing',
-        percentage: 60,
+        percentage: 70,
         message: 'Claude is analyzing your pitch...'
       });
 
       // Generate MVP document using the transcript
-      const mvpContent = await generateMVPDocument(transcript);
+      const mvpContent = await generateMVPDocument(transcriptionResult.text);
 
       setProgress({
         stage: 'analyzing',
@@ -110,9 +139,11 @@ export function useVideoUpload() {
       const now = new Date();
       const document: MVPDocument = {
         content: mvpContent,
-        transcript: transcript, // Store the transcribed text
+        transcript: transcriptionResult.text,
+        provider: transcriptionResult.provider,
+        transcriptionMetadata: transcriptionResult.metadata,
         createdAt: now.toISOString(),
-        transcriptFileName: `pitch-analysis-${now.toISOString().split('T')[0]}.txt`
+        transcriptFileName: `pitch-transcript-${provider}-${now.toISOString().split('T')[0]}.txt`
       };
 
       setMvpDocument(document);
@@ -125,7 +156,7 @@ export function useVideoUpload() {
 
       toast({
         title: "MVP Document Generated!",
-        description: "Your startup idea has been analyzed and converted into an MVP document.",
+        description: `Your startup idea has been analyzed using ${provider} transcription.`,
       });
 
     } catch (err) {
@@ -141,6 +172,8 @@ export function useVideoUpload() {
         } else {
           errorMessage = `Audio extraction failed: ${err.message}`;
         }
+      } else if (err instanceof TranscriptionError) {
+        errorMessage = `Transcription failed (${err.provider}): ${err.message}`;
       } else if (err instanceof AnthropicAPIError) {
         errorMessage = err.message;
       } else if (err instanceof Error) {
@@ -168,6 +201,8 @@ export function useVideoUpload() {
     progress,
     error,
     mvpDocument,
+    selectedProvider,
+    transcriptionResults,
     uploadAndGenerateMVP,
     resetUpload,
   };
