@@ -79,9 +79,9 @@ export function useVideoUpload() {
         message: 'Uploading audio to Claude...'
       });
 
-      // Upload audio to Claude and get file ID
-      const fileId = await uploadAudioToClaude(audioBlob);
-      console.log('Audio uploaded, file ID:', fileId);
+      // Upload audio to Claude and get file ID + audio data
+      const uploadResult = await uploadAudioToClaude(audioBlob);
+      console.log('Audio uploaded, file ID:', uploadResult.fileId);
 
       setProgress({
         stage: 'analyzing',
@@ -89,9 +89,14 @@ export function useVideoUpload() {
         message: 'Claude is transcribing and analyzing your pitch...'
       });
 
-      // Generate MVP document using the audio file
+      // Generate MVP document using the audio data (Claude 4.5 Haiku API)
       // Claude will transcribe and analyze the audio in one step
-      const mvpContent = await generateMVPDocument(undefined, fileId);
+      const mvpContent = await generateMVPDocument(
+        undefined,
+        uploadResult.fileId,
+        uploadResult.audioData,
+        uploadResult.mimeType
+      );
 
       setProgress({
         stage: 'analyzing',

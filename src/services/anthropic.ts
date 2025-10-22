@@ -8,14 +8,20 @@ export class AnthropicAPIError extends Error {
   }
 }
 
+export interface AudioUploadResult {
+  fileId: string;
+  audioData: string;
+  mimeType: string;
+}
+
 /**
  * Upload audio file to Claude via Netlify function
- * Returns the file ID that can be used in subsequent API calls
+ * Returns the file ID and audio data for use in Messages API
  *
  * @param audioBlob - The audio blob to upload (typically WAV format)
- * @returns Promise<string> - The file ID from Claude's Files API
+ * @returns Promise<AudioUploadResult> - The file ID, audio data, and MIME type
  */
-export async function uploadAudioToClaude(audioBlob: Blob): Promise<string> {
+export async function uploadAudioToClaude(audioBlob: Blob): Promise<AudioUploadResult> {
   console.log('📤 Uploading audio to Claude...');
   console.log('Audio size:', (audioBlob.size / 1024).toFixed(2), 'KB');
   console.log('Audio type:', audioBlob.type);
@@ -62,7 +68,12 @@ export async function uploadAudioToClaude(audioBlob: Blob): Promise<string> {
 
     const data = await response.json();
     console.log('✅ Audio uploaded successfully, file ID:', data.fileId);
-    return data.fileId;
+
+    return {
+      fileId: data.fileId,
+      audioData: data.audioData,
+      mimeType: data.mimeType
+    };
   } catch (error) {
     console.error('❌ Audio upload failed:', error);
     if (error instanceof AnthropicAPIError) {
@@ -79,20 +90,28 @@ export async function uploadAudioToClaude(audioBlob: Blob): Promise<string> {
  * This keeps the API key secure on the server side
  *
  * @param transcript - Optional text transcript (for fallback)
- * @param fileId - Optional Claude file ID (preferred method for audio processing)
+ * @param fileId - Optional Claude file ID (deprecated, kept for compatibility)
+ * @param audioData - Optional base64 audio data (preferred method for Claude 4.5 Haiku)
+ * @param mimeType - Optional MIME type for audio data
  * @returns Promise<string> - The generated MVP document content
  */
 export async function generateMVPDocument(
   transcript?: string,
-  fileId?: string
+  fileId?: string,
+  audioData?: string,
+  mimeType?: string
 ): Promise<string> {
-  if (!transcript && !fileId) {
-    throw new AnthropicAPIError('Either transcript or fileId must be provided');
+  if (!transcript && !fileId && !audioData) {
+    throw new AnthropicAPIError('Either transcript, fileId, or audioData must be provided');
   }
 
   try {
     console.log('🤖 Generating MVP document...');
-    if (fileId) {
+    if (audioData) {
+      console.log('Using audio data with document.source (Claude 4.5 Haiku API)');
+      console.log('Audio data length:', audioData.length);
+      console.log('MIME type:', mimeType);
+    } else if (fileId) {
       console.log('Using audio file ID:', fileId);
     } else {
       console.log('Using text transcript, length:', transcript?.length);
@@ -104,7 +123,7 @@ export async function generateMVPDocument(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ transcript, fileId }),
+      body: JSON.stringify({ transcript, fileId, audioData, mimeType }),
     });
 
     if (!response.ok) {

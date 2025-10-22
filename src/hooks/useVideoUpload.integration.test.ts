@@ -42,10 +42,16 @@ describe('useVideoUpload - Integration Tests', () => {
       // Mock successful responses
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       const mockFileId = 'file-abc123';
+      const mockAudioData = 'base64-encoded-audio-data';
+      const mockMimeType = 'audio/wav';
       const mockMVPContent = '# MVP Document\n\nExecutive Summary...';
 
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue(mockFileId);
+      mockUploadAudioToClaude.mockResolvedValue({
+        fileId: mockFileId,
+        audioData: mockAudioData,
+        mimeType: mockMimeType
+      });
       mockGenerateMVPDocument.mockResolvedValue(mockMVPContent);
 
       const { result } = renderHook(() => useVideoUpload());
@@ -74,7 +80,12 @@ describe('useVideoUpload - Integration Tests', () => {
       expect(mockUploadAudioToClaude).toHaveBeenCalledWith(mockAudioBlob);
 
       expect(mockGenerateMVPDocument).toHaveBeenCalledTimes(1);
-      expect(mockGenerateMVPDocument).toHaveBeenCalledWith(undefined, mockFileId);
+      expect(mockGenerateMVPDocument).toHaveBeenCalledWith(
+        undefined,
+        mockFileId,
+        mockAudioData,
+        mockMimeType
+      );
 
       expect(result.current.mvpDocument).toBeDefined();
       expect(result.current.mvpDocument?.content).toBe(mockMVPContent);
@@ -84,7 +95,11 @@ describe('useVideoUpload - Integration Tests', () => {
     it('should track progress through all stages', async () => {
       const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockUploadAudioToClaude.mockResolvedValue('file-123');
+      mockUploadAudioToClaude.mockResolvedValue({
+        fileId: 'file-123',
+        audioData: 'base64-data',
+        mimeType: 'audio/wav'
+      });
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
