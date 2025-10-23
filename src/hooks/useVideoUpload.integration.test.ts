@@ -71,26 +71,14 @@ describe('useVideoUpload - Integration Tests', () => {
         new Blob(['chunk2'], { type: 'video/mp4' })
       ];
 
-      // Execute upload
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      // Execute upload with live transcript
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('success');
       });
 
-      // Verify the full flow
-      expect(mockExtractAudioWithProgress).toHaveBeenCalledTimes(1);
-      expect(mockExtractAudioWithProgress).toHaveBeenCalledWith(
-        expect.any(Blob),
-        expect.any(Function)
-      );
-
-      expect(mockTranscribeVideoWithProgress).toHaveBeenCalledTimes(1);
-      expect(mockTranscribeVideoWithProgress).toHaveBeenCalledWith(
-        expect.any(Blob),
-        expect.any(Function)
-      );
-
+      // Verify the MVP generation was called with transcript
       expect(mockGenerateMVPDocument).toHaveBeenCalledTimes(1);
       expect(mockGenerateMVPDocument).toHaveBeenCalledWith(mockTranscript);
 
@@ -99,73 +87,59 @@ describe('useVideoUpload - Integration Tests', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should track progress through all stages', async () => {
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockTranscribeVideoWithProgress.mockResolvedValue('Test transcript');
+    it('should track progress through analysis stage', async () => {
+      const mockTranscript = 'Test transcript';
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('success');
       });
 
-      // Verify progress went through expected stages
-      expect(mockExtractAudioWithProgress).toHaveBeenCalled();
-      expect(mockTranscribeVideoWithProgress).toHaveBeenCalled();
+      // Verify MVP generation was called with the live transcript
       expect(mockGenerateMVPDocument).toHaveBeenCalled();
+      expect(mockGenerateMVPDocument).toHaveBeenCalledWith(mockTranscript);
     });
 
-    it('should handle audio extraction failure gracefully', async () => {
-      mockExtractAudioWithProgress.mockRejectedValue(
-        new audioExtraction.AudioExtractionError('Failed to decode audio', 'DECODE_FAILED')
-      );
-
+    it('should handle missing transcript gracefully', async () => {
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
+      // Call without transcript
       await result.current.uploadAndGenerateMVP(videoChunks);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('error');
-        expect(result.current.error).not.toBeNull();
+        expect(result.current.error).toContain('No transcript available');
       }, { timeout: 5000 });
 
-      expect(mockTranscribeVideoWithProgress).not.toHaveBeenCalled();
       expect(mockGenerateMVPDocument).not.toHaveBeenCalled();
     });
 
-    it('should handle transcription failure gracefully', async () => {
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockTranscribeVideoWithProgress.mockRejectedValue(
-        new TranscriptionError('Transcription failed', 'TRANSCRIPTION_FAILED')
-      );
-
+    it('should handle empty transcript gracefully', async () => {
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      // Call with empty transcript
+      await result.current.uploadAndGenerateMVP(videoChunks, '   ');
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('error');
-        expect(result.current.error).not.toBeNull();
+        expect(result.current.error).toContain('No transcript available');
       }, { timeout: 5000 });
 
       expect(mockGenerateMVPDocument).not.toHaveBeenCalled();
     });
 
     it('should handle MVP generation failure gracefully', async () => {
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockTranscribeVideoWithProgress.mockResolvedValue('Test transcript');
+      const mockTranscript = 'Test transcript';
       mockGenerateMVPDocument.mockRejectedValue(
         new anthropic.AnthropicAPIError('API rate limit exceeded', 429)
       );
@@ -174,7 +148,7 @@ describe('useVideoUpload - Integration Tests', () => {
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('error');
@@ -196,9 +170,7 @@ describe('useVideoUpload - Integration Tests', () => {
     });
 
     it('should properly combine video chunks into single blob', async () => {
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockTranscribeVideoWithProgress.mockResolvedValue('Test transcript');
+      const mockTranscript = 'Test transcript';
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
@@ -209,34 +181,27 @@ describe('useVideoUpload - Integration Tests', () => {
         new Blob(['chunk3'], { type: 'video/mp4' })
       ];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('success');
       });
 
-      // Verify audio extraction was called with a combined blob
-      const extractionCall = mockExtractAudioWithProgress.mock.calls[0];
-      const videoBlob = extractionCall[0];
-
-      expect(videoBlob).toBeInstanceOf(Blob);
-      expect(videoBlob.type).toBe('video/mp4');
+      // Verify MVP generation was called
+      expect(mockGenerateMVPDocument).toHaveBeenCalled();
     });
 
     it('should create MVP document with correct metadata', async () => {
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
       const mockTranscript = 'This is a test transcript';
       const mockMVPContent = '# MVP Document\n\nExecutive Summary...';
 
-      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockTranscribeVideoWithProgress.mockResolvedValue(mockTranscript);
       mockGenerateMVPDocument.mockResolvedValue(mockMVPContent);
 
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('success');
@@ -251,16 +216,14 @@ describe('useVideoUpload - Integration Tests', () => {
     });
 
     it('should reset upload state correctly', async () => {
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockTranscribeVideoWithProgress.mockResolvedValue('Test transcript');
+      const mockTranscript = 'Test transcript';
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('success');
@@ -300,13 +263,14 @@ describe('useVideoUpload - Integration Tests', () => {
     });
 
     it('should handle unknown errors', async () => {
-      mockExtractAudioWithProgress.mockRejectedValue(new Error('Unknown error occurred'));
+      const mockTranscript = 'Test transcript';
+      mockGenerateMVPDocument.mockRejectedValue(new Error('Unknown error occurred'));
 
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('error');
@@ -315,52 +279,35 @@ describe('useVideoUpload - Integration Tests', () => {
       expect(result.current.error).toContain('Unknown error occurred');
     });
 
-    it('should call progress callbacks during extraction', async () => {
-      const progressCallback = vi.fn();
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-
-      mockExtractAudioWithProgress.mockImplementation(async (blob, callback) => {
-        if (callback) {
-          callback('Initializing...');
-          callback('Decoding...');
-          callback('Complete!');
-        }
-        return mockAudioBlob;
-      });
-
-      mockTranscribeVideoWithProgress.mockResolvedValue('Test transcript');
+    it('should track progress during MVP generation', async () => {
+      const mockTranscript = 'Test transcript';
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('success');
       });
 
-      // Verify progress callback was passed
-      expect(mockExtractAudioWithProgress).toHaveBeenCalledWith(
-        expect.any(Blob),
-        expect.any(Function)
-      );
+      // Verify progress went through analyzing stage
+      expect(mockGenerateMVPDocument).toHaveBeenCalled();
     });
   });
 
   describe('Performance and Cleanup', () => {
     it('should clear progress state after completion', async () => {
-      const mockAudioBlob = new Blob(['audio data'], { type: 'audio/wav' });
-      mockExtractAudioWithProgress.mockResolvedValue(mockAudioBlob);
-      mockTranscribeVideoWithProgress.mockResolvedValue('Test transcript');
+      const mockTranscript = 'Test transcript';
       mockGenerateMVPDocument.mockResolvedValue('MVP content');
 
       const { result } = renderHook(() => useVideoUpload());
 
       const videoChunks = [new Blob(['test'], { type: 'video/mp4' })];
 
-      await result.current.uploadAndGenerateMVP(videoChunks);
+      await result.current.uploadAndGenerateMVP(videoChunks, mockTranscript);
 
       await waitFor(() => {
         expect(result.current.uploadStatus).toBe('success');

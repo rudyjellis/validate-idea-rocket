@@ -6,6 +6,7 @@ import { useVideoUpload } from "@/hooks/useVideoUpload";
 import CameraInitializerFixed from "./CameraInitializerFixed";
 import VideoPreviewContainer from "./desktop/VideoPreviewContainer";
 import CameraDebugInfo from "./CameraDebugInfo";
+import { TranscriptionIndicator } from "./TranscriptionIndicator";
 import type { VideoRecorderProps } from "../types";
 import type { VideoElementRef } from "./VideoElement";
 
@@ -25,6 +26,10 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
     microphones,
     selectedMicrophone,
     setSelectedMicrophone,
+    transcript,
+    isTranscribing,
+    isTranscriptionSupported,
+    transcriptionError,
     handleStartRecording,
     handleCountdownComplete,
     handleDownload,
@@ -43,7 +48,7 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
   const { uploadAndGenerateMVP, uploadStatus } = useVideoUpload();
 
   const handleUpload = () => {
-    uploadAndGenerateMVP(recordedChunks);
+    uploadAndGenerateMVP(recordedChunks, transcript);
   };
 
 
@@ -71,6 +76,18 @@ const DesktopVideoRecorder = ({ maxDuration = 30 }: VideoRecorderProps) => {
         onMicrophoneChange={handleMicrophoneChange}
         disabled={recordingState !== "idle" || isInitializing}
       />
+
+      {/* Show transcription status during recording */}
+      {(recordingState === "recording" || recordingState === "paused" || recordedChunks.length > 0) && (
+        <div className="mb-4">
+          <TranscriptionIndicator
+            isTranscribing={isTranscribing}
+            isSupported={isTranscriptionSupported}
+            error={transcriptionError}
+            transcriptLength={transcript.length}
+          />
+        </div>
+      )}
 
       <VideoPreviewContainer
         videoRef={videoRef}
