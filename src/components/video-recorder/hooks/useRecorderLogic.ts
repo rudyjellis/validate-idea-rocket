@@ -30,6 +30,12 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     restartRecording,
     currentStream,
     showCountdown,
+    transcript,
+    interimTranscript,
+    fullTranscript,
+    isTranscribing,
+    isTranscriptionSupported,
+    transcriptionError,
   } = useVideoRecording(maxDuration);
 
   const { cameras, selectedCamera, setSelectedCamera } = useCameraDevices();
@@ -140,7 +146,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     isPlayingBack,
     isInitializing,
     setIsInitializing,
-    
+
     // Video recording state
     videoRef,
     recordingState,
@@ -148,7 +154,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     timeLeft,
     currentStream,
     showCountdown,
-    
+
     // Camera state
     cameras,
     selectedCamera,
@@ -159,6 +165,14 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     selectedMicrophone,
     setSelectedMicrophone,
 
+    // Transcription state
+    transcript,
+    interimTranscript,
+    fullTranscript,
+    isTranscribing,
+    isTranscriptionSupported,
+    transcriptionError,
+
     // Handlers
     handleStartRecording,
     handleCountdownComplete,
@@ -167,7 +181,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     handleStopPlayback,
     handleCameraChange,
     handleMicrophoneChange,
-    
+
     // Direct access to recording functions
     startRecording,
     stopRecording,
@@ -176,7 +190,7 @@ export const useRecorderLogic = ({ maxDuration = 30 }: VideoRecorderProps) => {
     resetRecording,
     restartRecording,
     initializeStream,
-    
+
     // Toast for error handling
     toast,
   };

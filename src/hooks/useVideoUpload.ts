@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { generateMVPDocument, AnthropicAPIError } from '@/services/anthropic';
-import { extractAudioWithProgress, AudioExtractionError } from '@/services/audioExtraction';
 
 export type UploadStatus = 'idle' | 'transcribing' | 'analyzing' | 'success' | 'error';
 
@@ -35,71 +34,57 @@ export function useVideoUpload() {
     setMvpDocument(null);
   }, []);
 
-  const uploadAndGenerateMVP = useCallback(async (recordedChunks: Blob[]) => {
+  const uploadAndGenerateMVP = useCallback(async (recordedChunks: Blob[], liveTranscript?: string) => {
     if (recordedChunks.length === 0) {
       setError('No video recording found. Please record a video first.');
       setUploadStatus('error');
       return;
     }
 
-    setUploadStatus('transcribing');
+    if (!liveTranscript || liveTranscript.trim().length === 0) {
+      setError('No transcript available. Please ensure your browser supports speech recognition and try recording again.');
+      setUploadStatus('error');
+      toast({
+        title: "Transcription Error",
+        description: "No transcript was captured during recording. Please try again and speak clearly.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Starting MVP generation with live transcript, length:', liveTranscript.length);
+
+    setUploadStatus('analyzing');
     setError(null);
     setProgress({
-      stage: 'transcribing',
+      stage: 'analyzing',
       percentage: 0,
-      message: 'Preparing video for processing...'
+      message: 'Preparing your pitch analysis...'
     });
 
     try {
-      // Convert chunks to a single blob (prefer MP4 format)
+      // Convert chunks to a single blob (for archival/download purposes)
       const mimeType = 'video/mp4';
       const videoBlob = new Blob(recordedChunks, { type: mimeType });
       console.log('Video blob created:', videoBlob.size, 'bytes');
 
       setProgress({
-        stage: 'transcribing',
-        percentage: 15,
-        message: 'Extracting audio from video...'
+        stage: 'analyzing',
+        percentage: 30,
+        message: 'Sending transcript to Claude for analysis...'
       });
 
-      // Extract audio from video
-      const audioBlob = await extractAudioWithProgress(videoBlob, (status) => {
-        setProgress({
-          stage: 'transcribing',
-          percentage: 25,
-          message: status
-        });
-      });
-
-      console.log('Audio extracted:', audioBlob.size, 'bytes');
-
-      setProgress({
-        stage: 'transcribing',
-        percentage: 40,
-        message: 'Transcribing your pitch...'
-      });
-
-      // Transcribe audio using Web Speech API
-      const { transcribeVideoWithProgress } = await import('@/services/transcription');
-      const transcript = await transcribeVideoWithProgress(videoBlob, (status) => {
-        console.log('Transcription progress:', status);
-        setProgress({
-          stage: 'transcribing',
-          percentage: 50,
-          message: status
-        });
-      });
-
-      console.log('Transcription complete:', transcript.length, 'characters');
+      // Use the live transcript that was captured during recording
+      console.log('Using live transcript, length:', liveTranscript.length);
 
       setProgress({
         stage: 'analyzing',
-        percentage: 60,
+        percentage: 50,
         message: 'Claude is analyzing your pitch...'
       });
 
-      // Generate MVP document using the transcript
-      const mvpContent = await generateMVPDocument(transcript);
+      // Generate MVP document using the live transcript
+      const mvpContent = await generateMVPDocument(liveTranscript);
 
       setProgress({
         stage: 'analyzing',
@@ -110,7 +95,7 @@ export function useVideoUpload() {
       const now = new Date();
       const document: MVPDocument = {
         content: mvpContent,
-        transcript: transcript, // Store the transcribed text
+        transcript: liveTranscript, // Store the live transcription from recording
         createdAt: now.toISOString(),
         transcriptFileName: `pitch-analysis-${now.toISOString().split('T')[0]}.txt`
       };
@@ -129,19 +114,11 @@ export function useVideoUpload() {
       });
 
     } catch (err) {
-      console.error('Audio processing and MVP generation failed:', err);
+      console.error('MVP generation failed:', err);
 
       let errorMessage = 'An unexpected error occurred. Please try again.';
 
-      if (err instanceof AudioExtractionError) {
-        if (err.code === 'INVALID_BLOB') {
-          errorMessage = 'Invalid video recording. Please try recording again.';
-        } else if (err.code === 'DECODE_FAILED') {
-          errorMessage = 'Failed to process video audio. The video format may be unsupported.';
-        } else {
-          errorMessage = `Audio extraction failed: ${err.message}`;
-        }
-      } else if (err instanceof AnthropicAPIError) {
+      if (err instanceof AnthropicAPIError) {
         errorMessage = err.message;
       } else if (err instanceof Error) {
         errorMessage = err.message;
@@ -152,7 +129,7 @@ export function useVideoUpload() {
 
       toast({
         variant: "destructive",
-        title: "Processing Failed",
+        title: "Analysis Failed",
         description: errorMessage,
       });
     } finally {
