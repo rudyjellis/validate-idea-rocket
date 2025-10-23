@@ -3,11 +3,18 @@ import { createVideoRecorderLogger } from '@/utils/logger';
 
 const log = createVideoRecorderLogger('useLiveTranscription');
 
+// Extend Window interface for speech recognition
+interface WindowWithSpeechRecognition extends Window {
+  SpeechRecognition?: typeof SpeechRecognition;
+  webkitSpeechRecognition?: typeof SpeechRecognition;
+}
+
 // Check browser support
 const getSpeechRecognition = (): typeof SpeechRecognition | null => {
   if (typeof window === 'undefined') return null;
 
-  return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+  const w = window as unknown as WindowWithSpeechRecognition;
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 };
 
 export interface LiveTranscriptionState {
@@ -26,6 +33,7 @@ export const useLiveTranscription = () => {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isStoppingRef = useRef<boolean>(false);
+  const isTranscribingRef = useRef<boolean>(false);
 
   const SpeechRecognition = getSpeechRecognition();
   const isSupported = SpeechRecognition !== null;
@@ -104,7 +112,7 @@ export const useLiveTranscription = () => {
     // Handle end
     recognition.onend = () => {
       log.log('Speech recognition ended');
-      if (!isStoppingRef.current && isTranscribing) {
+      if (!isStoppingRef.current && isTranscribingRef.current) {
         // Restart if it ended unexpectedly while we're still recording
         log.log('Restarting speech recognition (unexpected end)');
         try {
@@ -114,6 +122,7 @@ export const useLiveTranscription = () => {
         }
       } else {
         setIsTranscribing(false);
+        isTranscribingRef.current = false;
       }
     };
 
@@ -150,6 +159,7 @@ export const useLiveTranscription = () => {
       setInterimTranscript('');
       recognitionRef.current.start();
       setIsTranscribing(true);
+      isTranscribingRef.current = true;
       return true;
     } catch (error) {
       log.error('Failed to start transcription:', error);
@@ -168,6 +178,7 @@ export const useLiveTranscription = () => {
       isStoppingRef.current = true;
       recognitionRef.current.stop();
       setIsTranscribing(false);
+      isTranscribingRef.current = false;
       setInterimTranscript('');
       log.log('Final transcript:', transcript);
     } catch (error) {
@@ -181,6 +192,7 @@ export const useLiveTranscription = () => {
     setInterimTranscript('');
     setError(null);
     setIsTranscribing(false);
+    isTranscribingRef.current = false;
   }, []);
 
   return {
